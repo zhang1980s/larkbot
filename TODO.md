@@ -1,0 +1,28 @@
+
+- [x] 支持多机器人配置
+- [x] 机器人菜单支持多support账号选择
+- [x] 机器人支持自定义菜单配置
+- [x] 机器人支持AWS中国区部署
+- [x] 通过环境变量或者代码逻辑判断lambda执行环境所在位置，AWS多region自适应
+- [x] 机器人增加广域网调用support API重试机制
+- [x] 忽略飞书重复消息重传
+- [x] 已关闭CASE收到飞书端更新后，把case状态转为open
+- [ ] DDB table TTL 设置，自动过期历史数据
+- [ ] DDB table billing-mode优化
+- [ ] lambda内存优化
+- [x] SAM自动化部署
+- [ ] lambda本地开发及测试
+- [ ] 代码开源
+- [ ] ~~周期性执行函数爬取非机器人开的case~~
+- [ ] 通过case群提交附件功能
+- [ ] 把飞书用户的email地址添加到cc list功能
+- [x] support API选择region （支持中国区）
+- [ ] 优化提示文案内容
+- [x] 富文本消息卡片支持
+- [x] 多飞书用户支持测试
+- [ ] 去掉代码中的无效常量，包括credential
+- [ ] 把support AKSK保存在secret manager / 通过Assume role访问support API
+- [ ] 优化调用海外support API延时的重试机制
+- [ ] 支持案例题目文本正则优化
+- [ ] 机器人增加health API订阅功能
+- [ ] 测试lambda on arm平台

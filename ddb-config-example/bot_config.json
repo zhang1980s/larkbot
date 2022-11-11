@@ -1,0 +1,254 @@
+{
+ "key": "LarkBotProfile-0",
+ "accounts": {
+  "0": {
+   "access_key_id": "ACCESS_KEY0",
+   "secret_access_key": "SECRET_KEY0"
+  },
+  "1": {
+   "access_key_id": "ACCESS_KEY1",
+   "secret_access_key": "SECRET_KEY1"
+  }
+ },
+ "ack": "回复已经收到",
+ "app_id": "cli_app_id",
+ "app_secret": "app_secret",
+ "case_card_template": {
+  "card": {
+   "config": {
+    "wide_screen_mode": true
+   },
+   "elements": [
+    {
+     "content": "**当前工单信息**\n --------------\n\n **题目：** \n\n **内容：** ",
+     "tag": "markdown"
+    },
+    {
+     "extra": {
+      "options": [
+       {
+        "text": {
+         "content": "我的账号1",
+         "tag": "plain_text"
+        },
+        "value": "0"
+       },
+       {
+        "text": {
+         "content": "我的账号2",
+         "tag": "plain_text"
+        },
+        "value": "1"
+       }
+      ],
+      "placeholder": {
+       "content": "账户",
+       "tag": "plain_text"
+      },
+      "tag": "select_static",
+      "value": {
+       "key": "账户"
+      }
+     },
+     "tag": "div",
+     "text": {
+      "content": "**账户**",
+      "tag": "lark_md"
+     }
+    },
+    {
+     "extra": {
+      "options": [
+       {
+        "text": {
+         "content": "general-info",
+         "tag": "plain_text"
+        },
+        "value": "0"
+       },
+       {
+        "text": {
+         "content": "amazon-elastic-compute-cloud-linux",
+         "tag": "plain_text"
+        },
+        "value": "1"
+       },
+       {
+        "text": {
+         "content": "amazon-simple-storage-service",
+         "tag": "plain_text"
+        },
+        "value": "2"
+       },
+       {
+        "text": {
+         "content": "amazon-virtual-private-cloud",
+         "tag": "plain_text"
+        },
+        "value": "3"
+       },
+       {
+        "text": {
+         "content": "ELB负载均衡器",
+         "tag": "plain_text"
+        },
+        "value": "4"
+       }
+      ],
+      "placeholder": {
+       "content": "请选择服务内容",
+       "tag": "plain_text"
+      },
+      "tag": "select_static",
+      "value": {
+       "key": "服务"
+      }
+     },
+     "tag": "div",
+     "text": {
+      "content": "**服务**",
+      "tag": "lark_md"
+     }
+    },
+    {
+     "extra": {
+      "options": [
+       {
+        "text": {
+         "content": "low",
+         "tag": "plain_text"
+        },
+        "value": "low"
+       },
+       {
+        "text": {
+         "content": "normal",
+         "tag": "plain_text"
+        },
+        "value": "normal"
+       },
+       {
+        "text": {
+         "content": "high",
+         "tag": "plain_text"
+        },
+        "value": "high"
+       },
+       {
+        "text": {
+         "content": "critical",
+         "tag": "plain_text"
+        },
+        "value": "critical"
+       }
+      ],
+      "placeholder": {
+       "content": "响应速度",
+       "tag": "plain_text"
+      },
+      "tag": "select_static",
+      "value": {
+       "key": "响应速度"
+      }
+     },
+     "tag": "div",
+     "text": {
+      "content": "**响应速度**",
+      "tag": "lark_md"
+     }
+    },
+    {
+     "content": "\n --------------\n**CASE 小助手**\n\n开AWS支持案例方法：\n1.在和机器人单独的聊天对话中，输入“开工单”关键字然后输入需要咨询的问题题目，问题题目和开工单关键字用空格隔开。\t\n\n2. 在弹出的飞书小卡片中选择问题提交问题的AWS账户，问题服务类型及问题严重级别。\t\n\n3.正确选择小卡片内容后，接下来输入关键字“内容”及具体问题描述。具体问题描述和“内容”关键字用空格隔开。描述信息建议包括：问题发生的时间及时区/涉及的资源ID及region/发生问题的现象/该问题对业务造成的影响/联系人及联系方式。\t\n\n4.案例更新：在机器人创建的新工单群里输入内容或添加附件提交工单更新。",
+     "tag": "markdown"
+    }
+   ]
+  },
+  "msg_type": "interactive",
+  "update_multi": true
+ },
+ "err_card_template": {
+  "card": {
+   "config": {
+    "wide_screen_mode": true
+   },
+   "elements": [
+    {
+     "content": "test",
+     "tag": "markdown"
+    }
+   ]
+  },
+  "msg_type": "interactive",
+  "update_multi": true
+ },
+ "service_map": {
+  "0": [
+   "general-info",
+   "using-aws"
+  ],
+  "1": [
+   "amazon-elastic-compute-cloud-linux",
+   "other"
+  ],
+  "2": [
+   "amazon-simple-storage-service",
+   "general-guidance"
+  ],
+  "3": [
+   "amazon-virtual-private-cloud",
+   "general-guidance"
+  ],
+  "4": [
+   "elastic-load-balancing",
+   "general-guidance"
+  ],
+  "5": [
+   "aws-identity-and-access-management",
+   "general-guidance"
+  ],
+  "6": [
+   "amazon-cloudwatch",
+   "general-guidance"
+  ],
+  "7": [
+   "aws-direct-connect",
+   "general-guidance"
+  ],
+  "8": [
+   "distributed-denial-of-service",
+   "inbound-to-aws"
+  ],
+  "9": [
+   "account-management",
+   "billing"
+  ],
+  "10": [
+   "amazon-cloudfront",
+   "general-guidance"
+  ],
+  "11": [
+   "amazon-relational-database-service-postgresql",
+   "general-guidance"
+  ],
+  "12": [
+   "amazon-relational-database-service-mysql",
+   "general-guidance"
+  ],
+  "13": [
+   "amazon-elastic-block-store",
+   "general-guidance"
+  ],
+  "14": [
+   "aws-lambda",
+   "general-guidance"
+  ]
+ },
+ "sev_map": {
+  "critical": "critical",
+  "high": "high",
+  "low": "low",
+  "normal": "normal",
+  "urgent": "urgent"
+ },
+ "usage": "Deprecated"
+}
