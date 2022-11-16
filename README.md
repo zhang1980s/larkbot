@@ -149,6 +149,8 @@ Successfully created/updated stack - larkbot in cn-northwest-1
 
 4. 删除部署环境
 
+如果不再需要使用飞书机器人，可以通过下面命令把飞书机器人相关资源删除。 （如开启了API Gateway / Lambda 的日志，还需要手工访问Cloudwatch log组件执行额外删除动作）
+
 ```
 aws cloudformation delete-stack --stack-name <name of your lark support bot project > --region <AWS region> --profile <AWS config profile>
 ```
