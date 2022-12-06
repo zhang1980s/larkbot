@@ -1,0 +1,8 @@
+POST  https://gn0wp86kq9.execute-api.cn-north-1.amazonaws.com.cn/Prod HTTP/1.1
+Content-Type: application/json
+
+{ 
+    "challenge": "ajls384kdjx98XX",  
+    "token": "xxxxxx",               
+    "type": "url_verification"     
+} 
