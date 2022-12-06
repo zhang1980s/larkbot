@@ -287,7 +287,7 @@ Successfully created/updated stack - larkbot in cn-northwest-1
 
 ### 提交中国区案例支持
 机器人默认会把支持案例提交到AWS海外支持团队。如果需要向AWS宁夏及北京地区的支持团队提交技术支持案例，则需要增加下面的lambda环境变量:
-`    --environment Variables={SUPPORT_REGIOM=cn} `
+`    --environment Variables={SUPPORT_REGION=cn} `
 
 飞书机器人会把使用中国区的Endpoint验证support API的credential。
 ### 使用成本
