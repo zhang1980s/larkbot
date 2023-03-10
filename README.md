@@ -15,7 +15,7 @@ AWS Serverless Application Module （SAM）是官方发布的用于在AWS上快�
 1. 根据[官方文档](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-install.html)说明,在本地环境中部署SAM CLI
 2. 克隆仓库
 
-`git clone https://gitlab.aws.dev/zzhe/larkbot.git`
+`git clone https://github.com/zhang1980s/larkbot.git`
 
 3. 部署飞书机器人环境
 
