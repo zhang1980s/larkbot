@@ -290,6 +290,14 @@ Successfully created/updated stack - larkbot in cn-northwest-1
 `    --environment Variables={SUPPORT_REGION=cn} `
 
 飞书机器人会把使用中国区的Endpoint验证support API的credential。
+
+### 多语言支持
+AWS CASE系统新增语言支持，可选的语言有英文，中文，日文，韩文。机器人可以通过环境变量控制CASE语言选择。模版默认会选择把CASE发送到中文队列，如果需要修改默认值，可以在sam部署时使用下面参数选择其他的语言队列：
+
+` --environment Variables={CASE_LANGUAGE=jp}`
+
+上面参数会指定这个机器人会把case开到日语队列中。
+
 ### 使用成本
 TBD
 ## TODO List
