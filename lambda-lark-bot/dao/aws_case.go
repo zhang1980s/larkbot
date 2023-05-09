@@ -54,6 +54,13 @@ func GetSupportClient(c *Case) *support.Client {
 func CreateCase(c *Case) (*Case, error) {
 	client := GetSupportClient(c)
 	input := &support.CreateCaseInput{}
+
+	input.Language = aws.String("en")
+
+	if os.Getenv("CASE_LANGUAGE") == "zh" {
+		input.Language = aws.String("zh")
+	}
+
 	input.Subject = &c.Title
 	v := config.ServiceMap[c.ServiceCode]
 	input.ServiceCode = aws.String(v[0])
@@ -204,6 +211,7 @@ func GetAWSCase(c *Case) (caze *support.DescribeCasesResponse, err error) {
 }
 
 func GetCaseComments(c *Case, ltime time.Time) (comments []support.Communication, err error) {
+	logrus.Infof("Starting to get case %s comments", *aws.String(c.DisplayCaseID))
 	client := GetSupportClient(c)
 
 	input := &support.DescribeCommunicationsInput{
@@ -225,6 +233,8 @@ func GetCaseComments(c *Case, ltime time.Time) (comments []support.Communication
 	if err != nil {
 		return nil, err
 	}
+
+	logrus.Infof("Get case %s comments complete", *aws.String(c.DisplayCaseID))
 	return resp.Communications, nil
 }
 

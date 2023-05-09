@@ -137,6 +137,7 @@ Resources:
       Environment:
         Variables:
           CFG_KEY: LarkBotProfile-0
+          CASE_LANGUAGE: zh
       Timeout: 60
       Role: !GetAtt LarkBotRole.Arn
       Events:
