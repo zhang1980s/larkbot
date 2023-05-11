@@ -159,6 +159,7 @@ func GetCaseByCardMSGID(msgID string) (c *Case, err error) {
 }
 
 func GetProcessingCases() (cs []*Case, err error) {
+	logrus.Infof("Start to get all un-closed cases")
 	client := GetDBClient()
 	query := client.QueryRequest(&dynamodb.QueryInput{
 		KeyConditionExpression: aws.String("#v_status = :v1 AND #v_type = :v2"),
@@ -186,6 +187,7 @@ func GetProcessingCases() (cs []*Case, err error) {
 	for i, v := range resp.Items {
 		cs[i] = convert(v)
 	}
+	logrus.Infof("Get all un-closed cases completed")
 	return cs, nil
 }
 

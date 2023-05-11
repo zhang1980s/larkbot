@@ -55,10 +55,11 @@ func CreateCase(c *Case) (*Case, error) {
 	client := GetSupportClient(c)
 	input := &support.CreateCaseInput{}
 
-	input.Language = aws.String("en")
-
-	if os.Getenv("CASE_LANGUAGE") == "zh" {
-		input.Language = aws.String("zh")
+	switch os.Getenv("CASE_LANGUAGE") {
+	case "zh", "ja", "ko":
+		input.Language = aws.String(os.Getenv("CASE_LANGUAGE"))
+	default:
+		input.Language = aws.String("en")
 	}
 
 	input.Subject = &c.Title
