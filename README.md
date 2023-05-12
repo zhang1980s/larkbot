@@ -1,4 +1,6 @@
 # 基于AWS无服务器架构，实现通过企业飞书即时通信工具与AWS技术支持工程师实时文字互动解决方案
+
+[TOC]
 ## 说明
 ---
 
@@ -23,7 +25,7 @@ AWS Serverless Application Module （SAM）是官方发布的用于在AWS上快�
 ```
 cd larkbot
 sam build
-sam deploy --config-file samconfig.toml --profile <AWS config profile> --region <AWS region>
+sam deploy --config-file samconfig.toml --resolve-s3 --stack-name <stack-name> --profile <AWS config profile> --region <AWS region>
 ```
 例如，在AWS宁夏region部署飞书机器人后端环境：
 
