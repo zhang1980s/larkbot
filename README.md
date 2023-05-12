@@ -9,7 +9,10 @@
 ---
 ![架构示意图](picture/architecture_lark_bot.png)
 
-## AWS SAM 安装
+## 安装部署
+---
+
+### AWS SAM安装
 ---
 AWS Serverless Application Module （SAM）是官方发布的用于在AWS上快速部署无服务应用的开源框架。通过SAM部署方式，可以快捷的部署、更新和回滚飞书机器人应用环境
 
@@ -304,7 +307,6 @@ AWS CASE系统新增语言支持，可选的语言有英文，中文，日文，
 TBD
 ## TODO List
 [TODO List](TODO.md)
-
 
 
 
