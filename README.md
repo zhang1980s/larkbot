@@ -4,17 +4,22 @@
 ## 说明
 ---
 
-飞书机器人是一套基于飞书企业通信工具的方便用户和AWS售后工程师快捷文字沟通的工具。飞书用户可以通过简单的机器人互动，向AWS售后工程师团队提交支持案例，更新案例内容，以及准实时接收来自后台工程师的更新。
+飞书AWS是一套基于飞书企业通信工具的方便用户和AWS售后工程师快捷文字沟通的工具。飞书用户可以通过简单的机器人互动，向AWS售后工程师团队提交支持案例，更新案例内容，以及准实时接收来自后台工程师的更新。
 ## 架构图
 ---
 ![架构示意图](picture/architecture_lark_bot.png)
 
 ## 安装部署
 ---
+安装部署需要有三个步骤：
+1. 通过AWS SAM部署飞书AWS技术支持机器人后端逻辑，包括API Gateway、Eventbridge rule、DynamoDB表和Lambda
+2. 在飞书开放平台界面上设定机器人回调地址及必须的权限
+3. 设定机器人Profile，指定机器人支持的AWS账号，服务等级及服务列表
+
 
 ### AWS SAM安装
 ---
-AWS Serverless Application Module （SAM）是官方发布的用于在AWS上快速部署无服务应用的开源框架。通过SAM部署方式，可以快捷的部署、更新和回滚飞书机器人应用环境
+AWS Serverless Application Module （SAM）是官方发布的用于在AWS上快速部署无服务应用的开源框架。通过SAM部署方式，可以快捷的部署、更新和回滚飞书AWS技术支持机器人应用环境
 
 部署步骤：
 1. 根据[官方文档](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-install.html)说明,在本地环境中部署SAM CLI
@@ -22,7 +27,7 @@ AWS Serverless Application Module （SAM）是官方发布的用于在AWS上快�
 
 `git clone https://github.com/zhang1980s/larkbot.git`
 
-3. 部署飞书机器人环境
+3. 部署飞书AWS技术支持机器人环境
 
 
 ```
@@ -30,7 +35,7 @@ cd larkbot
 sam build
 sam deploy --config-file samconfig.toml --resolve-s3 --stack-name <stack-name> --profile <AWS config profile> --region <AWS region>
 ```
-例如，在AWS宁夏region部署飞书机器人后端环境：
+例如，在AWS宁夏region部署飞书AWS技术支持机器人后端环境：
 
 ```
 sam deploy --config-file samconfig.toml --region cn-northwest-1 --resolve-s3 --stack-name larkbot --profile cn
@@ -154,13 +159,13 @@ Successfully created/updated stack - larkbot in cn-northwest-1
 
 4. 删除部署环境
 
-如果不再需要使用飞书机器人，可以通过下面命令把飞书机器人相关资源删除。 （如开启了API Gateway / Lambda 的日志，还需要手工访问Cloudwatch log组件执行额外删除动作）
+如果不再需要使用飞书AWS技术支持机器人，可以通过下面命令把飞书AWS技术支持机器人相关资源删除。 （如开启了API Gateway / Lambda 的日志，还需要手工访问Cloudwatch log组件执行额外删除动作）
 
 ```
 aws cloudformation delete-stack --stack-name <name of your lark support bot project > --region <AWS region> --profile <AWS config profile>
 ```
 
-### 飞书企业管理界面上设定机器人
+### 飞书开放平台界面上设定机器人回调地址及必须的权限
 ---
 1. 创建自定义企业应用
 
@@ -201,7 +206,7 @@ Value               https://iyxomvhlqi.execute-api.cn-northwest-1.amazonaws.com.
 
 Successfully created/updated stack - larkbot in cn-northwest-1
 ```
-把https://iyxomvhlqi.execute-api.cn-northwest-1.amazonaws.com.cn/值填入到机器人消息卡片请求网址框中。
+把 https://iyxomvhlqi.execute-api.cn-northwest-1.amazonaws.com.cn/ 值填入到机器人消息卡片请求网址框中。
 
 ![设定消息卡片请求网址](picture/创建企业自建应用-4-设置消息卡片请求网址.png)
 
@@ -236,7 +241,7 @@ Successfully created/updated stack - larkbot in cn-northwest-1
 把API Gateway的Endpoint地址再次填入到时间订阅的请求网址URL框中。
 ![事件订阅](picture/创建企业自建应用-7-请求网址及事件订阅.png)
 
-然后点击添加事件按钮，在弹出的添加事件窗口中，选择消息与群组类别，然后选择接收消息，点击确认添加。下列事件会被添加到飞书机器人事件订阅中。
+然后点击添加事件按钮，在弹出的添加事件窗口中，选择消息与群组类别，然后选择接收消息，点击确认添加。下列事件会被添加到飞书AWS技术支持机器人事件订阅中。
 
 |事件名称|所需权限|
 |-------|------|
@@ -247,7 +252,244 @@ Successfully created/updated stack - larkbot in cn-northwest-1
 
 ![添加事件](picture/创建企业自建应用-8-添加事件.png)
 
-8. 机器人中飞书开放平台发版时，需选择员工可用范围，
+8. 机器人中飞书开放平台发版时，需选择员工可用范围
+
+### 设定机器人Profile，指定机器人支持的AWS账号，服务等级及服务列表
+飞书AWS技术支持机器人支持通过profile的方式指定机器人的配置。一个机器人对应一个profile。每个机器人对应一个API Gateway Endpoint 和一个Lambda函数。通过Lambda的环境变量CFG_KEY指定当前Lambda使用的Profile。通过SAM模版部署完成后，会默认创建一个"CFG_KEY=LarkBotProfile-0"的环境变量。
+
+每个profile对应DynamoDB中bot_config表中的一条项目（Item）。每条项目（Item）分区键（Partition Key）为“key”,分区键的值就是机器人的Profile的名称。每个机器人对应一个Profile，每个Profile的配置，可以在对应的项目中变更。
+
+每个机器人的profile，主要用于自定义三部分内容：
+
+1. AWS账号。开工单时指定当前机器人可以提交支持案例的账号名称。
+
+![开工单指定账号](picture/配置机器人-指定工单账号.png)
+
+配置方式：
+
+例如当前机器人可以为两个AWS账号提交问题：
+
+在DynamoDB界面中，以JSON视图编辑bot_config表中指定的项目；
+在account Attribute下， 参考下面JSON格式增加AWS账号相关的AK/SK。这里的AK/SK需具有访问目标账号support API的权限。
+
+下面示例定义了两个账号的AK/SK：
+
+```
+  "accounts": {
+    "M": {
+      "0": {
+        "M": {
+          "access_key_id": {
+            "S": "<AK0>"
+          },
+          "secret_access_key": {
+            "S": "<SK0>"
+          }
+        }
+      },
+      "1": {
+        "M": {
+          "access_key_id": {
+            "S": "AK1"
+          },
+          "secret_access_key": {
+            "S": "SK1"
+          }
+        }
+      }
+    }
+  }
+```
+
+定义了账号的AK/SK后，再在case card template Attribute下找到下面内容，把上面配置中定义的AK/SK对应的账号编码加入到option Attribute中，然后把相关账号的便于识别的名字加入到content Attribute中。例如下面示例中，账号0的名字是”我的账号1“。当通过机器人创建支持案例的时候，账号选项卡中会显示”我的账号1“。
+
+
+如果有更多的账号，按照相同格式增加更多的账号AK/SK以及菜单显示信息和对应关系。
+
+```
+     "extra": {
+      "options": [
+       {
+        "text": {
+         "content": "我的账号1",
+         "tag": "plain_text"
+        },
+        "value": "0"
+       },
+       {
+        "text": {
+         "content": "我的账号2",
+         "tag": "plain_text"
+        },
+        "value": "1"
+       }
+      ],
+      "placeholder": {
+       "content": "账户",
+       "tag": "plain_text"
+      },
+      "tag": "select_static",
+      "value": {
+       "key": "账户"
+      }
+     }
+```
+
+
+2. AWS服务。开工单时指定当前机器人支持的AWS服务。
+
+![开工单指定服务](picture/配置机器人-指定服务.png)
+
+配置方式：
+
+在service_map attribute 中，按照下面格式，添加需要的提交问题的服务列表。
+
+每个服务有两部分内容需要填写，第一个内容是service code，第二个内容是service category code。每个service code下通常都会有general-guidance类型的service categories。为了减少小卡片的交互，增加机器人支持的某些服务时，找到general-guidance类型的service category code填写到对应的服务项目中。
+
+
+```
+"service_map": {
+  "0": [
+   "general-info",
+   "using-aws"
+  ],
+  "1": [
+   "amazon-elastic-compute-cloud-linux",
+   "other"
+  ],
+  "2": [
+   "amazon-simple-storage-service",
+   "general-guidance"
+  ],
+  "3": [
+   "amazon-virtual-private-cloud",
+   "general-guidance"
+  ],
+  "4": [
+   "elastic-load-balancing",
+   "general-guidance"
+  ],
+  "5": [
+   "aws-identity-and-access-management",
+   "general-guidance"
+  ],
+```
+
+可以通过下面命令获取最新完整的service code和service category code信息.
+
+```
+aws support describe-services
+
+```
+
+定义了支持的服务后，再在case card template Attribute下找到下面内容,编辑开工单是小卡片显示的服务内容：
+
+
+```
+     "extra": {
+      "options": [
+       {
+        "text": {
+         "content": "general-info",
+         "tag": "plain_text"
+        },
+        "value": "0"
+       },
+       {
+        "text": {
+         "content": "amazon-elastic-compute-cloud-linux",
+         "tag": "plain_text"
+        },
+        "value": "1"
+       },
+       {
+        "text": {
+         "content": "amazon-simple-storage-service",
+         "tag": "plain_text"
+        },
+        "value": "2"
+       },
+       {
+        "text": {
+         "content": "amazon-virtual-private-cloud",
+         "tag": "plain_text"
+        },
+        "value": "3"
+       },
+       {
+        "text": {
+         "content": "ELB负载均衡器",
+         "tag": "plain_text"
+        },
+        "value": "4"
+       }
+      ],
+```
+
+3. 工单严重级别。开工单时指定当前机器人支持的严重级别。
+
+![开工单指定问题严重级别](picture/配置机器人-指定工单严重级别.png)
+
+
+参考下面的配置指定机器人可选的问题严重级别。
+
+设定Sev code映射关系：
+```
+ "sev_map": {
+  "critical": "critical",
+  "high": "high",
+  "low": "low",
+  "normal": "normal",
+  "urgent": "urgent"
+ },
+```
+
+设定开工单小卡片显示信息：
+```
+     "extra": {
+      "options": [
+       {
+        "text": {
+         "content": "low - 24小时响应",
+         "tag": "plain_text"
+        },
+        "value": "low"
+       },
+       {
+        "text": {
+         "content": "normal - 12小时响应",
+         "tag": "plain_text"
+        },
+        "value": "normal"
+       },
+       {
+        "text": {
+         "content": "high - 4小时响应",
+         "tag": "plain_text"
+        },
+        "value": "high"
+       },
+       {
+        "text": {
+         "content": "urgent - 1小时响应",
+         "tag": "plain_text"
+        },
+        "value": "urgent"
+       },
+       {
+        "text": {
+         "content": "critical - 15分钟响应",
+         "tag": "plain_text"
+        },
+        "value": "critical"
+       }
+      ],
+```
+
+4. 指定提示内容。开工单时指定当前机器人小卡片的提示内容。
+
+![小卡片提示内容](picture/配置机器人-指定提示内容.png)
+
 ## 使用方式
 ---
 ### 开支持案例
@@ -258,10 +500,10 @@ Successfully created/updated stack - larkbot in cn-northwest-1
 5. 完成提交案例所需的全部信息后，机器人会自动创建一个以支持案例 ID + 案例题目命名的飞书群聊。
 4. 如果在部署环境过程中需要创建测试案例时，在案例的问题中以[TEST_CASE_Please_ignore](https://docs.aws.amazon.com/awssupport/latest/user/Welcome.html#endpoint)开头，后台工程师会忽略这个支持案例。
 ### 更新支持案例
-1. 在机器人创建的以支持案例ID+案例题目命名的飞书群聊中任何用户输入的任何文字信息即可更新到支持案例中。附件信息例如截屏，日志文件等也会以附件的方式附加到支持案例中。当AWS support API收到文本消息后，机器人会确认消息已经收到。如果飞书服务器和API Gateway之间的网络状况不佳，可能会有丢失消息的情况，例如把飞书机器人部署在AWS海外region，这时候则需要重新发送消息。
+1. 在机器人创建的以支持案例ID+案例题目命名的飞书群聊中任何用户输入的任何文字信息即可更新到支持案例中。附件信息例如截屏，日志文件等也会以附件的方式附加到支持案例中。当AWS support API收到文本消息后，机器人会确认消息已经收到。如果飞书服务器和API Gateway之间的网络状况不佳，可能会有丢失消息的情况，例如把飞书AWS技术支持机器人部署在AWS海外region，这时候则需要重新发送消息。
 
 ### 后台更新自动推送
-1. 飞书机器人后端逻辑会根据eventbridge的rule的执行时间间隔更新支持案例内容，AWS支持工程师在后端的更新及支持案例在AWS界面的更新都会被自动推送到相关支持案例的群里面。
+1. 飞书AWS技术支持机器人后端逻辑会根据eventbridge的rule的执行时间间隔更新支持案例内容，AWS支持工程师在后端的更新及支持案例在AWS界面的更新都会被自动推送到相关支持案例的群里面。
 本文sam模版中默认使用了10分钟的间隔，可以通过修改这个参数调整时间间隔。
 ```
       Events:
@@ -294,7 +536,7 @@ Successfully created/updated stack - larkbot in cn-northwest-1
 机器人默认会把支持案例提交到AWS海外支持团队。如果需要向AWS宁夏及北京地区的支持团队提交技术支持案例，则需要增加下面的lambda环境变量:
 `    --environment Variables={SUPPORT_REGION=cn} `
 
-飞书机器人会把使用中国区的Endpoint验证support API的credential。
+飞书AWS技术支持机器人会把使用中国区的Endpoint验证support API的credential。
 
 ### 多语言支持
 AWS CASE系统新增语言支持，可选的语言有英文，中文，日文，韩文。机器人可以通过环境变量控制CASE语言选择。模版默认会选择把CASE发送到中文队列，如果需要修改默认值，可以在sam部署时使用下面参数选择其他的语言队列：
@@ -348,13 +590,13 @@ TBD
 
 ## 手工安装方式
 ---
-飞书机器人手工安装分3部分：
-1. 创建带访问AWS支持权限的飞书机器人IAM账号
-2. 设定飞书机器人后端
+飞书AWS技术支持机器人手工安装分3部分：
+1. 创建带访问AWS支持权限的飞书AWS技术支持机器人IAM账号
+2. 设定飞书AWS技术支持机器人后端
 3. 飞书企业管理界面上设定机器人
 
-### 创建带访问AWS支持权限的飞书机器人IAM账号
-1. 在需要开支持案例的账号下创建飞书机器人IAM账号，并且生成AKSK
+### 创建带访问AWS支持权限的飞书AWS技术支持机器人IAM账号
+1. 在需要开支持案例的账号下创建飞书AWS技术支持机器人IAM账号，并且生成AKSK
 
 > Grant full 支持案例 api access
 
@@ -373,9 +615,9 @@ TBD
 }
 ```
 
-1. 关闭飞书机器人IAM账号的console访问权限
+1. 关闭飞书AWS技术支持机器人IAM账号的console访问权限
 
-### 设定飞书机器人后端
+### 设定飞书AWS技术支持机器人后端
 1. 获取源代码
 ```
 git clone https://gitlab.aws.dev/zzhe/larkbot.git
@@ -386,7 +628,7 @@ git clone https://gitlab.aws.dev/zzhe/larkbot.git
    make
    aws s3 cp lambda-larkbot/bin/main.zip s3://zzhe-cn-bucket-1
 ```
-3. 创建飞书机器人lambda逻辑所需的role
+3. 创建飞书AWS技术支持机器人lambda逻辑所需的role
 > Grant read & write access of DynamoDB to lambda role
 4. 创建飞书lambda function，设定环境变量
 ```
