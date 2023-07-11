@@ -570,6 +570,10 @@ https://github.com/zhang1980s/larkbot/blob/main/ddb-config-example/bot_config.js
 ### 工单系统多语言支持
 AWS 工单（CASE）系统新增语言支持，可选的语言有英文(en)，中文(zh)，日文(ja)，韩文(ko)。机器人可以通过环境变量控制工单（CASE）语言选择。模版默认会选择把工单（CASE）发送到英文队列，如果需要修改默认值，可以在sam部署时使用下面参数选择其他的语言队列：
 
+` --environment Variables={CASE_LANGUAGE=zh}`
+
+上面参数会指定这个机器人会把工单（CASE）开到中文队列中。
+
 ` --environment Variables={CASE_LANGUAGE=ja}`
 
 上面参数会指定这个机器人会把工单（CASE）开到日语队列中。
