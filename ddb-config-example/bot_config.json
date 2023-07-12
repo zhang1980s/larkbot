@@ -2,17 +2,17 @@
  "key": "LarkBotProfile-0",
  "accounts": {
   "0": {
-   "access_key_id": "ACCESS_KEY0",
-   "secret_access_key": "SECRET_KEY0"
+   "access_key_id": "AK0",
+   "secret_access_key": "SK0"
   },
   "1": {
-   "access_key_id": "ACCESS_KEY1",
-   "secret_access_key": "SECRET_KEY1"
+   "access_key_id": "AK1",
+   "secret_access_key": "SK1"
   }
  },
  "ack": "回复已经收到",
- "app_id": "cli_app_id",
- "app_secret": "app_secret",
+ "app_id": "cli_xxx",
+ "app_secret": "xxx",
  "case_card_template": {
   "card": {
    "config": {
@@ -139,7 +139,7 @@
          "content": "urgent - 1小时响应",
          "tag": "plain_text"
         },
-        "value": "high"
+        "value": "urgent"
        },
        {
         "text": {
