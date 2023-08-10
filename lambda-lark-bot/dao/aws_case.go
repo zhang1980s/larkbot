@@ -16,6 +16,8 @@ import (
 	"golang.org/x/net/context"
 )
 
+const caseUrl = "https://support.console.aws.amazon.com/support/home#/case/?displayId=%s"
+
 var SupportClient *support.Client
 
 func GetSupportClient(c *Case) *support.Client {
@@ -104,6 +106,7 @@ func CreateCase(c *Case) (*Case, error) {
 		logrus.Errorf("failed to create feishu channel %s", err)
 		return nil, err
 	}
+
 	fromChannel := c.ChannelID
 	c.FromChannelID = fromChannel
 	c.ChannelID = channelID
@@ -118,6 +121,18 @@ func CreateCase(c *Case) (*Case, error) {
 		return nil, err
 	}
 	c.CardRespMsgID = rsp.Data.MsgID
+
+	/// Adding ChatTab with CASE URL
+	logrus.Info("Adding ChatTab with CASE URL")
+	url := fmt.Sprintf(caseUrl, c.DisplayCaseID)
+
+	err = CreateChatTab(c.ChannelID, url)
+
+	if err != nil {
+		logrus.Errorf("failed to create feishu chat tab %s", err)
+		return nil, err
+	}
+
 	c, err = UpsertCase(c)
 	if err != nil {
 		logrus.Errorf("failed to update case info %s", err)

@@ -17,6 +17,7 @@ const (
 	downloadUrl      = "https://open.feishu.cn/open-apis/im/v1/messages/%s/resources/%s?type=%s"
 	createChannelUrl = "https://open.feishu.cn/open-apis/chat/v4/create/"
 	tokenUrl         = "https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal/"
+	createChatTabUrl = "https://open.feishu.cn/open-apis/im/v1/chats/%s/chat_tabs"
 )
 
 func CreateChannel(userIDs []string, name string) (channelID string, err error) {
@@ -208,4 +209,56 @@ func download(downloadUrl string) ([]byte, error) {
 		return nil, err
 	}
 	return data, nil
+}
+
+func CreateChatTab(chatID string, url string) (err error) {
+	ct := &model.CreateChatTabsReq{
+		ChatTabs: &[]model.ChatTabs{
+			{
+				TabName: "CASELINK",
+				TabType: "url",
+				TabContent: &model.TabContent{
+					URL: url,
+				},
+			},
+		},
+	}
+
+	jsonStr, err := json.Marshal(ct)
+	if err != nil {
+		return err
+	}
+
+	/// Debug: print jsonStr
+	///	logrus.Infof(string(jsonStr))
+
+	createChatTabUrl := fmt.Sprintf(createChatTabUrl, chatID)
+	/// logrus.Infof("create chat tab url %s", createChatTabUrl)
+	req, err := http.NewRequest("POST", createChatTabUrl, bytes.NewBuffer(jsonStr))
+	if err != nil {
+		return err
+	}
+	t, err := getToken()
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Authorization", "Bearer "+t.TAToken)
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		logrus.Errorf("%v", err)
+		return err
+	}
+	defer resp.Body.Close()
+
+	res := &model.FeiShuResponse{}
+	body, _ := ioutil.ReadAll(resp.Body)
+	logrus.Infof("response Body: %s", string(body))
+	err = json.Unmarshal(body, res)
+	if err != nil {
+		return err
+	}
+	return nil
 }

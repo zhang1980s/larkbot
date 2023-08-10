@@ -59,3 +59,25 @@ type CardRsp struct {
 type CRData struct {
 	MsgID string `json:"message_id,omitempty"`
 }
+
+type CreateChatTabsReq struct {
+	ChatTabs *[]ChatTabs `json:"chat_tabs"`
+}
+
+type ChatTabs struct {
+	TabName    string      `json:"tab_name,omitempty"`
+	TabType    string      `json:"tab_type"`
+	TabContent *TabContent `json:"tab_content,omitempty"`
+	TabConfig  *TabConfig  `json:"tab_config,omitempty"`
+}
+
+type TabContent struct {
+	URL           string `json:"url,omitempty"`
+	Doc           string `json:"doc,omitempty"`
+	MeetingMinute string `json:"meeting_minute,omitempty"`
+}
+
+type TabConfig struct {
+	IconKey   string `json:"icon_key,omitempty"`
+	IsBuiltIn bool   `json:"is_built_in,omitempty"`
+}
