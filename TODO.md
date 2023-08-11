@@ -26,3 +26,4 @@
 - [x] 支持案例题目文本正则优化
 - [ ] 机器人增加health API订阅功能
 - [x] 测试lambda on arm平台
+- [x] 在机器人开的case群中，使用飞书会话标签ChatTab保存Case Link
