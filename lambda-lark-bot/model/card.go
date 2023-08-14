@@ -58,8 +58,8 @@ func BuildCardWithTitle(card *Card, title string) {
 
 func BuildCardWithContent(card *Card, content string) {
 	if content == "" {
-		card.Elements[0].Content = strings.Replace(card.Elements[0].Content, "**内容：**", "❌**内容：**", 1)
+		card.Elements[4].Content = strings.Replace(card.Elements[4].Content, "**内容：**", "❌**内容：**", 1)
 	} else {
-		card.Elements[0].Content = strings.Replace(card.Elements[0].Content, "**内容：**", "**内容：**"+content, 1)
+		card.Elements[4].Content = strings.Replace(card.Elements[4].Content, "**内容：**", "**内容：**"+content, 1)
 	}
 }
