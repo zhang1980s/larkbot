@@ -15,11 +15,24 @@ func GetSearcher() api.Server {
 	return &searcher{}
 }
 
-func (s *searcher) Handle(e *event.Msg, title string) (c *dao.Case, err error) {
-	/// print test point
-	logrus.Infof("%v", c)
-	logrus.Infof("Into seach loop %s", title)
+func (s *searcher) Handle(e *event.Msg, time string) (c *dao.Case, err error) {
+	fromChannelID := e.Event.Message.ChatID
+	customerID := e.Event.Sender.SenderIDs.UserID
 
-	dao.SendMsg(c.ChannelID, c.UserID, title)
+	// search by time
+	cs, err = dao.GetCasesByTime(time)
+	if err != nil {
+		logrus.Errorf("Failed to search case, %v", err)
+		return nil, err
+	}
+	title := ""
+	for _, v := range cs {
+		title += v.CaseID + v.Title
+	}
+	err = dao.SendMsg(fromChannelID, customerID, title)
+	if err != nil{
+		logrus.Errorf("Failed to send msg for search case, %v", err)
+		return nil, err
+	}
 	return nil, nil
 }

@@ -25,6 +25,7 @@ const (
 	TYPE_CASE      = "CASE"
 	SK             = "AWS_CASE"
 	GSI_NAME       = "status-type-index"
+	GSI_CREATE_TIME = "create-time-index"
 	GSI_MSG_ID     = "card_msg_id-index"
 )
 
@@ -156,6 +157,60 @@ func GetCaseByCardMSGID(msgID string) (c *Case, err error) {
 		logrus.Errorf("msg ID %v, resp %v", msgID, resp)
 		return nil, errors.New("没有找到工单卡片")
 	}
+}
+
+func GetCasesByTime(time string) (cs []*Case, err error) {
+	logrus.Infof("Start to get all cases by time: %v", time)
+	client := GetDBClient()
+	// Map<String, AttributeValue> lastKeyEvaluated = null;
+	// do {
+	// 	ScanRequest scanRequest = new ScanRequest()
+	// 		.withTableName(tableName)
+	// 		.withLimit(10)
+	// 		.withExclusiveStartKey(lastKeyEvaluated);
+	
+	// 	ScanResult result = client.scan(scanRequest);
+	// 	for (Map<String, AttributeValue> item : result.getItems()){
+	// 		printItem(item);
+	// 	}
+	// 	lastKeyEvaluated = result.getLastEvaluatedKey();
+	// } while (lastKeyEvaluated != null);
+	
+	intTime, err := strconv.Atoi(time)
+	if err != nil {
+		logrus.Errorf("failed to convert time to int %s", err)
+		return nil, err
+	}
+
+	limit := 10
+	cs = []*Case{}
+	do {
+		//FIXME check sdk code
+		query := client.QueryRequest(&dynamodb.ScanRequest{
+			FilterExpression: aws.String("create_time >= :create_time"),
+			//FIXME check the attr
+			Limit: limit,
+			ExpressionAttributeValues: map[string]dynamodb.AttributeValue{
+				":create_time": {
+					S: aws.String(time.Now().AddDate(0, -intTime, 0).String()),
+				},
+			},
+			IndexName: aws.String(GSI_CREATE_TIME),
+			TableName: aws.String(tableName),
+		})
+		resp, err := query.Send(context.Background())
+		if err != nil {
+			logrus.Errorf("failed to list all cases %s", err)
+			return nil, err
+		}
+		rs = make([]*Case, len(resp.Items))
+		for i, v := range resp.Items {
+			rs[i] = convert(v)
+		}
+		logrus.Infof("Get %v cases completed", limit)
+		cs = append(cs, rs)
+	}
+	return cs, nil
 }
 
 func GetProcessingCases() (cs []*Case, err error) {
