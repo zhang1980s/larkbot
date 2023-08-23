@@ -17,6 +17,7 @@ func InitServices() {
 		"响应速度":     handlers.GetServ(),
 		"服务":       handlers.GetServiceServ(),
 		"帮助":       handlers.Gethelper(),
+		"历史":       handlers.GetSearcher(),
 		defaultKey: handlers.GetCommentsServServ(),
 	}
 }
