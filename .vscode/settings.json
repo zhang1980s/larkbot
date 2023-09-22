@@ -1,0 +1,17 @@
+{
+    "serverlessConsole.services": [
+        {
+            "type": "cloudformation",
+            "title": "larkbot-sin-demo",
+            "timeOffsetInMs": 0,
+            "awsProfile": "default",
+            "stacks": [
+                {
+                    "region": "ap-southeast-1",
+                    "stackName": "larkbot-sin-demo",
+                    "stage": "dev"
+                }
+            ]
+        }
+    ]
+}

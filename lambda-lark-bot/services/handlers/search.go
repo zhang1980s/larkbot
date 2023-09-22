@@ -4,6 +4,8 @@ import (
 	"lambda-lark-bot/dao"
 	"lambda-lark-bot/model/event"
 	"lambda-lark-bot/services/api"
+
+	"github.com/sirupsen/logrus"
 )
 
 type searcher struct {
@@ -14,23 +16,23 @@ func GetSearcher() api.Server {
 }
 
 func (s *searcher) Handle(e *event.Msg, time string) (c *dao.Case, err error) {
-	// fromChannelID := e.Event.Message.ChatID
-	// customerID := e.Event.Sender.SenderIDs.UserID
+	fromChannelID := e.Event.Message.ChatID
+	customerID := e.Event.Sender.SenderIDs.UserID
 
 	// // search by time
-	// cs, err = dao.GetCasesByTime(time)
-	// if err != nil {
-	// 	logrus.Errorf("Failed to search case, %v", err)
-	// 	return nil, err
-	// }
-	// title := ""
-	// for _, v := range cs {
-	// 	title += v.CaseID + v.Title
-	// }
-	// err = dao.SendMsg(fromChannelID, customerID, title)
-	// if err != nil{
-	// 	logrus.Errorf("Failed to send msg for search case, %v", err)
-	// 	return nil, err
-	// }
+	cs, err := dao.GetCasesByTime(time)
+	if err != nil {
+		logrus.Errorf("Failed to search case, %v", err)
+		return nil, err
+	}
+	title := ""
+	for _, v := range cs {
+		title += v.CaseID + v.Title
+	}
+	err = dao.SendMsg(fromChannelID, customerID, title)
+	if err != nil {
+		logrus.Errorf("Failed to send msg for search case, %v", err)
+		return nil, err
+	}
 	return nil, nil
 }

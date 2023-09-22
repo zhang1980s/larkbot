@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"lambda-lark-bot/config"
 	"lambda-lark-bot/model"
 	"net/http"
@@ -49,7 +49,7 @@ func CreateChannel(userIDs []string, name string) (channelID string, err error) 
 	defer resp.Body.Close()
 
 	res := &model.FeiShuResponse{}
-	body, _ := ioutil.ReadAll(resp.Body)
+	body, _ := io.ReadAll(resp.Body)
 	logrus.Infof("response Body: %s", string(body))
 	err = json.Unmarshal(body, res)
 	if err != nil {
@@ -84,7 +84,7 @@ func SendFeishuMsg(feishuMsg *model.FeiShuMsg) ([]byte, error) {
 	}
 	defer resp.Body.Close()
 
-	body, _ := ioutil.ReadAll(resp.Body)
+	body, _ := io.ReadAll(resp.Body)
 	logrus.Infof("send msg response Body: %s", string(body))
 	return body, nil
 }
@@ -102,8 +102,8 @@ func SendMsgByType(chatId, userID, msg, msgType string) ([]byte, error) {
 	return SendFeishuMsg(fsmsg)
 }
 
-//SendMsg chatId group ID
-//SendMsg userID userID
+// SendMsg chatId group ID
+// SendMsg userID userID
 func SendMsg(chatId, userID, msg string) error {
 	_, err := SendMsgByType(chatId, userID, msg, "text")
 	return err
@@ -158,7 +158,7 @@ func getToken() (t *model.TokenResp, err error) {
 	}
 	defer resp.Body.Close()
 
-	body, _ := ioutil.ReadAll(resp.Body)
+	body, _ := io.ReadAll(resp.Body)
 	logrus.Infof("get token response Body: %s", string(body))
 	t = &model.TokenResp{}
 	err = json.Unmarshal(body, t)
@@ -197,13 +197,13 @@ func download(downloadUrl string) ([]byte, error) {
 	}
 	// Check server response
 	if resp.StatusCode != http.StatusOK {
-		body, _ := ioutil.ReadAll(resp.Body)
+		body, _ := io.ReadAll(resp.Body)
 		logrus.Infof("bad status: %s", string(body))
 		return nil, fmt.Errorf("bad status: %v", resp)
 	}
 	defer resp.Body.Close()
 
-	data, err := ioutil.ReadAll(resp.Body)
+	data, err := io.ReadAll(resp.Body)
 	if err != nil {
 		logrus.Errorf("falied to read resp %v", err)
 		return nil, err
@@ -254,7 +254,7 @@ func CreateChatTab(chatID string, url string) (err error) {
 	defer resp.Body.Close()
 
 	res := &model.FeiShuResponse{}
-	body, _ := ioutil.ReadAll(resp.Body)
+	body, _ := io.ReadAll(resp.Body)
 	logrus.Infof("response Body: %s", string(body))
 	err = json.Unmarshal(body, res)
 	if err != nil {

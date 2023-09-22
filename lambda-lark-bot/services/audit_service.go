@@ -6,6 +6,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 )
@@ -19,14 +20,13 @@ func Processable(e *event.Msg) bool {
 	}
 
 	client := dao.GetDBClient()
-	// check existing case
-	req := client.GetItemRequest(&dynamodb.GetItemInput{
-		Key: map[string]dynamodb.AttributeValue{
-			"key": {S: aws.String(e.Header.EventID)},
+	// check existing request
+	result, err := client.GetItem(context.Background(), &dynamodb.GetItemInput{
+		Key: map[string]types.AttributeValue{
+			"key": &types.AttributeValueMemberS{Value: e.Header.EventID},
 		},
 		TableName: aws.String(auditTableName),
 	})
-	result, err := req.Send(context.Background())
 
 	if err != nil {
 		logrus.Errorf("check audit failed %v", err)
@@ -37,17 +37,17 @@ func Processable(e *event.Msg) bool {
 		return false
 	}
 
-	item := map[string]dynamodb.AttributeValue{
-		"key": {S: aws.String(e.Header.EventID)},
+	item := map[string]types.AttributeValue{
+		"key": &types.AttributeValueMemberS{Value: e.Header.EventID},
 	}
 	logrus.Infof("item %s", item)
 	input := &dynamodb.PutItemInput{
 		Item:                   item,
-		ReturnConsumedCapacity: dynamodb.ReturnConsumedCapacityTotal,
+		ReturnConsumedCapacity: types.ReturnConsumedCapacityTotal,
 		TableName:              aws.String(auditTableName),
 	}
-	r := client.PutItemRequest(input)
-	_, err = r.Send(context.Background())
+
+	_, err = client.PutItem(context.Background(), input)
 	if err != nil {
 		logrus.Errorf("failed to put data %v", err)
 	}

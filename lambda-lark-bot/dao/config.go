@@ -1,15 +1,16 @@
 package dao
 
 import (
+	"context"
 	"errors"
 	"lambda-lark-bot/config"
 	"os"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb/dynamodbattribute"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/sirupsen/logrus"
-	"golang.org/x/net/context"
 )
 
 var cfgTableName = "bot_config"
@@ -21,14 +22,13 @@ var AppSecret = "yyyy"
 
 func SetupConfig() error {
 	client := GetDBClient()
-	// check existing case
-	req := client.GetItemRequest(&dynamodb.GetItemInput{
-		Key: map[string]dynamodb.AttributeValue{
-			"key": {S: aws.String(os.Getenv(EnvConfigKey))},
+	// check existing request
+	result, err := client.GetItem(context.Background(), &dynamodb.GetItemInput{
+		Key: map[string]types.AttributeValue{
+			"key": &types.AttributeValueMemberS{Value: os.Getenv(EnvConfigKey)},
 		},
 		TableName: aws.String(cfgTableName),
 	})
-	result, err := req.Send(context.Background())
 	if err != nil {
 		return err
 	}
@@ -54,19 +54,19 @@ func SetupConfig() error {
 		c.AppSecret = AppSecret
 		c.CaseCardTemplate = config.CardTemplate
 		c.ErrCardTemplate = config.ErrCardTemplate
-		item, err := dynamodbattribute.MarshalMap(c)
+		item, err := attributevalue.MarshalMap(c)
 
 		if err != nil {
 			logrus.Errorf("Marshal map failed %v", err)
 		}
-		logrus.Infof("item %s", item)
+		logrus.Infof("item is %s", item)
 		input := &dynamodb.PutItemInput{
 			Item:                   item,
-			ReturnConsumedCapacity: dynamodb.ReturnConsumedCapacityTotal,
+			ReturnConsumedCapacity: types.ReturnConsumedCapacityTotal,
 			TableName:              aws.String(cfgTableName),
 		}
-		req := client.PutItemRequest(input)
-		_, err = req.Send(context.Background())
+		_, err = client.PutItem(context.Background(), input)
+
 		if err != nil {
 			logrus.Errorf("failed to put data %v", err)
 			return errors.New(config.BotConfigNotExisted)
@@ -75,8 +75,14 @@ func SetupConfig() error {
 	return nil
 }
 
-func convertCfg(attr map[string]dynamodb.AttributeValue) *config.Config {
+func convertCfg(attr map[string]types.AttributeValue) *config.Config {
 	c := &config.Config{}
-	dynamodbattribute.UnmarshalMap(attr, c)
+
+	err := attributevalue.UnmarshalMap(attr, c)
+	logrus.Errorf("cfg convert : %v", c)
+	logrus.Errorf("cfg convert attr : %v", attr)
+	if err != nil {
+		logrus.Errorf("failed to unmarshal map %v", err)
+	}
 	return c
 }

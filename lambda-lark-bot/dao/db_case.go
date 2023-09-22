@@ -2,16 +2,19 @@ package dao
 
 import (
 	"errors"
+	"fmt"
 	"lambda-lark-bot/model"
 	"lambda-lark-bot/model/event"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/aws/external"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb/dynamodbattribute"
-	"github.com/aws/aws-sdk-go-v2/service/support"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	supporttypes "github.com/aws/aws-sdk-go-v2/service/support/types"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 )
@@ -35,7 +38,7 @@ func GetDBClient() *dynamodb.Client {
 	if DBClient != nil {
 		return DBClient
 	}
-	cfg, err := external.LoadDefaultAWSConfig()
+	cfg, err := config.LoadDefaultConfig(context.TODO())
 	if err != nil {
 		panic("unable to load SDK config, " + err.Error())
 	}
@@ -44,11 +47,11 @@ func GetDBClient() *dynamodb.Client {
 	cfg.Region = os.Getenv("AWS_REGION")
 
 	// Using the Config value, create the DynamoDB client
-	DBClient := dynamodb.New(cfg)
+	DBClient := dynamodb.NewFromConfig(cfg)
 	return DBClient
 }
 
-//OpenCase every time rewrite the one case from this channel
+// OpenCase every time rewrite the one case from this channel
 func OpenCase(fromChannelID, customerID, title, msgID string, msg *model.FeiShuMsg) (c *Case, err error) {
 
 	// insert the data into dynamodb
@@ -74,7 +77,7 @@ func OpenCase(fromChannelID, customerID, title, msgID string, msg *model.FeiShuM
 
 func UpsertCase(c *Case) (ca *Case, err error) {
 	client := GetDBClient()
-	item, err := dynamodbattribute.MarshalMap(c)
+	item, err := attributevalue.MarshalMap(c)
 
 	if err != nil {
 		logrus.Errorf("Marshamap failed %v", err)
@@ -83,11 +86,11 @@ func UpsertCase(c *Case) (ca *Case, err error) {
 	logrus.Infof("item %s", item)
 	input := &dynamodb.PutItemInput{
 		Item:                   item,
-		ReturnConsumedCapacity: dynamodb.ReturnConsumedCapacityTotal,
+		ReturnConsumedCapacity: types.ReturnConsumedCapacityTotal,
 		TableName:              aws.String(tableName),
 	}
-	req := client.PutItemRequest(input)
-	_, err = req.Send(context.Background())
+	_, err = client.PutItem(context.Background(), input)
+
 	if err != nil {
 		logrus.Errorf("failed to put data %v", err)
 		return nil, err
@@ -95,9 +98,9 @@ func UpsertCase(c *Case) (ca *Case, err error) {
 	return c, nil
 }
 
-func convert(attr map[string]dynamodb.AttributeValue) *Case {
+func convert(attr map[string]types.AttributeValue) *Case {
 	c := &Case{}
-	dynamodbattribute.UnmarshalMap(attr, c)
+	attributevalue.UnmarshalMap(attr, c)
 	return c
 }
 
@@ -114,14 +117,14 @@ func GetCaseByEvent(e *event.Msg) (c *Case, err error) {
 func GetCase(channelID string) (c *Case, err error) {
 	client := GetDBClient()
 	// check existing case
-	req := client.GetItemRequest(&dynamodb.GetItemInput{
-		Key: map[string]dynamodb.AttributeValue{
-			"pk": {S: aws.String(channelID)},
-			"sk": {S: aws.String(SK)},
+	result, err := client.GetItem(context.Background(), &dynamodb.GetItemInput{
+		Key: map[string]types.AttributeValue{
+			"pk": &types.AttributeValueMemberS{Value: channelID},
+			"sk": &types.AttributeValueMemberS{Value: SK},
 		},
 		TableName: aws.String(tableName),
 	})
-	result, err := req.Send(context.Background())
+
 	if err != nil {
 		return nil, err
 	}
@@ -133,12 +136,11 @@ func GetCase(channelID string) (c *Case, err error) {
 
 func GetCaseByCardMSGID(msgID string) (c *Case, err error) {
 	client := GetDBClient()
-	query := client.QueryRequest(&dynamodb.QueryInput{
+
+	resp, err := client.Query(context.Background(), &dynamodb.QueryInput{
 		KeyConditionExpression: aws.String("#v_card_msg_id = :v1"),
-		ExpressionAttributeValues: map[string]dynamodb.AttributeValue{
-			":v1": {
-				S: aws.String(msgID),
-			},
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":v1": &types.AttributeValueMemberS{Value: msgID},
 		},
 		ExpressionAttributeNames: map[string]string{
 			"#v_card_msg_id": "card_msg_id",
@@ -146,7 +148,7 @@ func GetCaseByCardMSGID(msgID string) (c *Case, err error) {
 		IndexName: aws.String(GSI_MSG_ID),
 		TableName: aws.String(tableName),
 	})
-	resp, err := query.Send(context.Background())
+
 	if err != nil {
 		logrus.Errorf("failed to list all cases %s", err)
 		return nil, err
@@ -159,72 +161,62 @@ func GetCaseByCardMSGID(msgID string) (c *Case, err error) {
 	}
 }
 
-// func GetCasesByTime(time string) (cs []*Case, err error) {
-// 	logrus.Infof("Start to get all cases by time: %v", time)
-// 	client := GetDBClient()
-// 	// Map<String, AttributeValue> lastKeyEvaluated = null;
-// 	// do {
-// 	// 	ScanRequest scanRequest = new ScanRequest()
-// 	// 		.withTableName(tableName)
-// 	// 		.withLimit(10)
-// 	// 		.withExclusiveStartKey(lastKeyEvaluated);
+func GetCasesByTime(t string) (cs []*Case, err error) {
+	logrus.Infof("Start to get all cases by time: %v", t)
+	client := GetDBClient()
 
-// 	// 	ScanResult result = client.scan(scanRequest);
-// 	// 	for (Map<String, AttributeValue> item : result.getItems()){
-// 	// 		printItem(item);
-// 	// 	}
-// 	// 	lastKeyEvaluated = result.getLastEvaluatedKey();
-// 	// } while (lastKeyEvaluated != null);
+	intTime, err := strconv.Atoi(t)
+	if err != nil {
+		logrus.Errorf("failed to convert time to int %s", err)
+		return nil, err
+	}
 
-// 	intTime, err := strconv.Atoi(time)
-// 	if err != nil {
-// 		logrus.Errorf("failed to convert time to int %s", err)
-// 		return nil, err
-// 	}
+	limit := 10
+	cs = []*Case{}
+	params := &dynamodb.ScanInput{
+		TableName:        aws.String(tableName),
+		FilterExpression: aws.String("create_time >= :start_time"),
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":start_time": &types.AttributeValueMemberS{
+				Value: time.Now().AddDate(0, 0, -intTime).Format("2006-01-02"),
+			},
+		},
+	}
+	result := &dynamodb.ScanOutput{}
+	for true {
+		result, err = client.Scan(
+			context.Background(),
+			params,
+		)
+		if err != nil {
+			logrus.Errorf("failed to list all cases %s", err)
+			return nil, err
+		}
+		items := []*Case{}
+		err = attributevalue.UnmarshalListOfMaps(result.Items, &items)
+		if err != nil {
+			fmt.Println("Error unmarshaling DynamoDB items:", err)
+			return nil, err
+		}
+		logrus.Infof("Get %v cases completed", limit)
+		cs = append(cs, items...)
+		if result.LastEvaluatedKey == nil {
+			break
+		}
 
-// 	limit := 10
-// 	cs = []*Case{}
-// 	do {
-// 		//FIXME check sdk code
-// 		query := client.QueryRequest(&dynamodb.ScanRequest{
-// 			FilterExpression: aws.String("create_time >= :create_time"),
-// 			//FIXME check the attr
-// 			Limit: limit,
-// 			ExpressionAttributeValues: map[string]dynamodb.AttributeValue{
-// 				":create_time": {
-// 					S: aws.String(time.Now().AddDate(0, -intTime, 0).String()),
-// 				},
-// 			},
-// 			IndexName: aws.String(GSI_CREATE_TIME),
-// 			TableName: aws.String(tableName),
-// 		})
-// 		resp, err := query.Send(context.Background())
-// 		if err != nil {
-// 			logrus.Errorf("failed to list all cases %s", err)
-// 			return nil, err
-// 		}
-// 		rs = make([]*Case, len(resp.Items))
-// 		for i, v := range resp.Items {
-// 			rs[i] = convert(v)
-// 		}
-// 		logrus.Infof("Get %v cases completed", limit)
-// 		cs = append(cs, rs)
-// 	}
-// 	return cs, nil
-// }
+		params.ExclusiveStartKey = result.LastEvaluatedKey
+	}
+	return cs, nil
+}
 
 func GetProcessingCases() (cs []*Case, err error) {
 	logrus.Infof("Start to get all un-closed cases")
 	client := GetDBClient()
-	query := client.QueryRequest(&dynamodb.QueryInput{
+	resp, err := client.Query(context.Background(), &dynamodb.QueryInput{
 		KeyConditionExpression: aws.String("#v_status = :v1 AND #v_type = :v2"),
-		ExpressionAttributeValues: map[string]dynamodb.AttributeValue{
-			":v1": {
-				S: aws.String(STATUS_OPEN),
-			},
-			":v2": {
-				S: aws.String(TYPE_CASE),
-			},
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":v1": &types.AttributeValueMemberS{Value: STATUS_OPEN},
+			":v2": &types.AttributeValueMemberS{Value: TYPE_CASE},
 		},
 		ExpressionAttributeNames: map[string]string{
 			"#v_status": "status",
@@ -233,7 +225,6 @@ func GetProcessingCases() (cs []*Case, err error) {
 		IndexName: aws.String(GSI_NAME),
 		TableName: aws.String(tableName),
 	})
-	resp, err := query.Send(context.Background())
 	if err != nil {
 		logrus.Errorf("failed to list all cases %s", err)
 		return nil, err
@@ -247,23 +238,37 @@ func GetProcessingCases() (cs []*Case, err error) {
 }
 
 type Case struct {
-	AccountKey      string    `json:"account_key,omitempty"`
-	UserID          string    `json:"user_id,omitempty"`
-	ChannelID       string    `json:"pk,omitempty"`
-	SortKey         string    `json:"sk,omitempty"`
-	FromChannelID   string    `json:"from_channel,omitempty"`
-	CreateTime      string    `json:"create_time,omitempty"`
-	UpdateTime      string    `json:"update_time,omitempty"`
-	Title           string    `json:"title,omitempty"`
-	CaseID          string    `json:"case_id,omitempty"`
-	Content         string    `json:"content,omitempty"`
-	Status          string    `json:"status,omitempty"`
-	ServiceCode     string    `json:"service_code,omitempty"`
-	SevCode         string    `json:"sev_code,omitempty"`
-	Type            string    `json:"type,omitempty"`
-	LastCommentTime time.Time `json:"last_comment_time,omitempty"`
-	Comments        []support.Communication
-	DisplayCaseID   string           `json:"display_case_id,omitempty"`
-	CardRespMsgID   string           `json:"card_msg_id,omitempty"`
-	CardMsg         *model.FeiShuMsg `json:"card_msg,omitempty"`
+	AccountKey      string    `dynamodbav:"account_key"`
+	UserID          string    `dynamodbav:"user_id"`
+	ChannelID       string    `dynamodbav:"pk"`
+	SortKey         string    `dynamodbav:"sk"`
+	FromChannelID   string    `dynamodbav:"from_channel"`
+	CreateTime      string    `dynamodbav:"create_time"`
+	UpdateTime      string    `dynamodbav:"update_time"`
+	Title           string    `dynamodbav:"title"`
+	CaseID          string    `dynamodbav:"case_id"`
+	Content         string    `dynamodbav:"content"`
+	Status          string    `dynamodbav:"status"`
+	ServiceCode     string    `dynamodbav:"service_code"`
+	SevCode         string    `dynamodbav:"sev_code"`
+	Type            string    `dynamodbav:"type"`
+	LastCommentTime time.Time `dynamodbav:"last_comment_time"`
+	Comments        []supporttypes.Communication
+	DisplayCaseID   string           `dynamodbav:"display_case_id"`
+	CardRespMsgID   string           `dynamodbav:"card_msg_id"`
+	CardMsg         *model.FeiShuMsg `dynamodbav:"card_msg"`
+}
+
+// GetKey returns the primary key of the case in a format that can be
+// sent to DynamoDB.
+func (c Case) GetKey() map[string]types.AttributeValue {
+	pk, err := attributevalue.Marshal(c.ChannelID)
+	if err != nil {
+		logrus.Errorf("failed to get case key when convert : %v", err)
+	}
+	sk, err := attributevalue.Marshal(c.SortKey)
+	if err != nil {
+		logrus.Errorf("failed to get case key when convert : %v", err)
+	}
+	return map[string]types.AttributeValue{"pk": pk, "sk": sk}
 }

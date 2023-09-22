@@ -9,9 +9,10 @@ import (
 
 	"github.com/avast/retry-go"
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/aws/endpoints"
-	"github.com/aws/aws-sdk-go-v2/aws/external"
+	awsconfig "github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/support"
+	"github.com/aws/aws-sdk-go-v2/service/support/types"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 )
@@ -24,33 +25,34 @@ func GetSupportClient(c *Case) *support.Client {
 	if SupportClient != nil {
 		return SupportClient
 	}
-	logrus.Infof("Conf %v", config.Conf)
-	logrus.Infof("case %v", c)
+
 	a, ok := config.Conf.Accounts[c.AccountKey]
 	if !ok {
 		panic("failed to get account " + c.AccountKey)
 	}
-	cfg, err := external.LoadDefaultAWSConfig(
-		external.WithCredentialsValue(aws.Credentials{
-			AccessKeyID:     a.AccessKeyID,
-			SecretAccessKey: a.SecretAccessKey,
-		}),
-	)
+	cfg, err := awsconfig.LoadDefaultConfig(context.TODO(),
+		awsconfig.WithRegion(getRegion()),
+		awsconfig.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(a.AccessKeyID, a.SecretAccessKey, "")))
+
 	if err != nil {
 		panic("unable to load SDK config, " + err.Error())
 	}
 
-	// Set the AWS Region that the service clients should use
-
-	cfg.Region = endpoints.UsEast1RegionID
-
-	if os.Getenv("SUPPORT_REGION") == "cn" {
-		cfg.Region = endpoints.CnNorth1RegionID
-	}
-
 	logrus.Info("Support Endpoint Region:", cfg.Region)
 
-	return support.New(cfg)
+	SupportClient = support.NewFromConfig(cfg)
+	return SupportClient
+}
+
+func getRegion() string {
+	// Get the value of SUPPORT_REGION
+	supportRegion := os.Getenv("SUPPORT_REGION")
+	// If it is cn, return cn-north-1
+	if supportRegion == "cn" {
+		return "cn-north-1"
+	}
+	// Otherwise, return us-east-1 as default
+	return "us-east-1"
 }
 
 func CreateCase(c *Case) (*Case, error) {
@@ -73,12 +75,12 @@ func CreateCase(c *Case) (*Case, error) {
 	input.SeverityCode = aws.String(v1)
 	input.CommunicationBody = &c.Content
 
-	var response *support.CreateCaseResponse
+	var response *support.CreateCaseOutput
 
 	err := retry.Do(
 		func() error {
 			var err error
-			response, err = client.CreateCaseRequest(input).Send(context.Background())
+			response, err = client.CreateCase(context.Background(), input)
 			if err != nil {
 				return err
 			}
@@ -150,11 +152,11 @@ func AddAttToCase(c *Case, setID, name string) (caze *Case, err error) {
 		AttachmentSetId:   &setID,
 		CommunicationBody: &name,
 	}
-	var resp *support.AddCommunicationToCaseResponse
+	var resp *support.AddCommunicationToCaseOutput
 	err = retry.Do(
 		func() error {
 			var err error
-			resp, err = client.AddCommunicationToCaseRequest(add).Send(context.Background())
+			resp, err = client.AddCommunicationToCase(context.Background(), add)
 			if err != nil {
 				return err
 			}
@@ -166,7 +168,7 @@ func AddAttToCase(c *Case, setID, name string) (caze *Case, err error) {
 		return nil, err
 	}
 
-	logrus.Infof("%s", resp.String())
+	logrus.Infof("%v", resp)
 	return c, nil
 }
 
@@ -179,11 +181,11 @@ func AddComment(c *Case, comment string) (caze *Case, err error) {
 		CaseId:            &c.CaseID,
 		CommunicationBody: &comment,
 	}
-	var resp *support.AddCommunicationToCaseResponse
+	var resp *support.AddCommunicationToCaseOutput
 	err = retry.Do(
 		func() error {
 			var err error
-			resp, err = client.AddCommunicationToCaseRequest(add).Send(context.Background())
+			resp, err = client.AddCommunicationToCase(context.Background(), add)
 			if err != nil {
 				return err
 			}
@@ -195,22 +197,22 @@ func AddComment(c *Case, comment string) (caze *Case, err error) {
 		return nil, err
 	}
 
-	logrus.Infof("%s", resp.String())
+	logrus.Infof("%v", resp)
 	return c, nil
 }
 
-func GetAWSCase(c *Case) (caze *support.DescribeCasesResponse, err error) {
+func GetAWSCase(c *Case) (caze *support.DescribeCasesOutput, err error) {
 	client := GetSupportClient(c)
 
 	input := &support.DescribeCasesInput{
 		CaseIdList: []string{c.CaseID},
 	}
 
-	var resp *support.DescribeCasesResponse
+	var resp *support.DescribeCasesOutput
 	err = retry.Do(
 		func() error {
 			var err error
-			resp, err = client.DescribeCasesRequest(input).Send(context.Background())
+			resp, err = client.DescribeCases(context.Background(), input)
 			if err != nil {
 				return err
 			}
@@ -219,14 +221,14 @@ func GetAWSCase(c *Case) (caze *support.DescribeCasesResponse, err error) {
 	)
 
 	if err != nil {
-		logrus.Errorf("failed to get case from aws case %s", resp)
+		logrus.Errorf("failed to get case from aws case %v", resp)
 		return nil, err
 	}
 
 	return resp, nil
 }
 
-func GetCaseComments(c *Case, ltime time.Time) (comments []support.Communication, err error) {
+func GetCaseComments(c *Case, ltime time.Time) (comments []types.Communication, err error) {
 	logrus.Infof("Starting to get case %s comments", *aws.String(c.DisplayCaseID))
 	client := GetSupportClient(c)
 
@@ -234,11 +236,11 @@ func GetCaseComments(c *Case, ltime time.Time) (comments []support.Communication
 		AfterTime: aws.String(FormatTime(ltime)),
 		CaseId:    aws.String(c.CaseID),
 	}
-	var resp *support.DescribeCommunicationsResponse
+	var resp *support.DescribeCommunicationsOutput
 	err = retry.Do(
 		func() error {
 			var err error
-			resp, err = client.DescribeCommunicationsRequest(input).Send(context.Background())
+			resp, err = client.DescribeCommunications(context.Background(), input)
 			if err != nil {
 				return err
 			}
@@ -258,7 +260,7 @@ func AddAttachmentToCase(c *Case, name string, data []byte) error {
 	client := GetSupportClient(c)
 	att := &support.AddAttachmentsToSetInput{
 		AttachmentSetId: nil,
-		Attachments: []support.Attachment{
+		Attachments: []types.Attachment{
 			{
 				Data:     data,
 				FileName: &name,
@@ -266,11 +268,11 @@ func AddAttachmentToCase(c *Case, name string, data []byte) error {
 		},
 	}
 
-	var resp *support.AddAttachmentsToSetResponse
+	var resp *support.AddAttachmentsToSetOutput
 	err := retry.Do(
 		func() error {
 			var err error
-			resp, err = client.AddAttachmentsToSetRequest(att).Send(context.Background())
+			resp, err = client.AddAttachmentsToSet(context.Background(), att)
 			if err != nil {
 				return err
 			}
@@ -293,7 +295,7 @@ func FormatTime(t time.Time) string {
 	return t.Format(time.RFC3339)
 }
 
-func FormatComments(comments []support.Communication) string {
+func FormatComments(comments []types.Communication) string {
 	s := ""
 	for _, c := range comments {
 		s += fmt.Sprintf("来自%s的最新回复(%s):\n %s\n", *c.SubmittedBy, *c.TimeCreated, *c.Body)
