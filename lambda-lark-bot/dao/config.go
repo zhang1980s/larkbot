@@ -79,8 +79,7 @@ func convertCfg(attr map[string]types.AttributeValue) *config.Config {
 	c := &config.Config{}
 
 	err := attributevalue.UnmarshalMap(attr, c)
-	logrus.Errorf("cfg convert : %v", c)
-	logrus.Errorf("cfg convert attr : %v", attr)
+
 	if err != nil {
 		logrus.Errorf("failed to unmarshal map %v", err)
 	}

@@ -63,6 +63,7 @@ func SendFeishuMsg(feishuMsg *model.FeiShuMsg) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	logrus.Infof("SendFeishuMsg %s", jsonStr)
 	req, err := http.NewRequest("POST", sendMsgUrl, bytes.NewBuffer(jsonStr))
 	if err != nil {
 		return nil, err
