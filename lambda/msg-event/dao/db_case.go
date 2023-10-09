@@ -204,7 +204,7 @@ func GetCasesByTime(t string) (cs []*Case, err error) {
 			fmt.Println("Error unmarshaling DynamoDB items:", err)
 			return nil, err
 		}
-		// logrus.Infof("Get %v cases completed", limit)
+
 		cs = append(cs, items...)
 		if result.LastEvaluatedKey == nil {
 			break
