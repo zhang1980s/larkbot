@@ -1,4 +1,8 @@
+.gitignore
 .aws-sam
-.vscode
-lambda-lark-bot/bin
 tmp
+go.work
+go.work.sum
+node_modules
+.vscode
+ddb-example

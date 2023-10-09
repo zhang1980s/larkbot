@@ -1,29 +1,81 @@
+## Deployment
+- [x] CDK部署
+apigw/lambda/ddb/ssm secrets/eventbridge rule 资源，
+- [x] modify go runtime to custom runtime
+provided.al2 on arm64
+- [x] 不使用fixed的ddb表名
+- [x] lambda version/alias
+- [ ] stackset自动创建role
+带support API role的org集中管理模式 （集成在larkbot app？ 分开的app？）
+- [ ] Makefile
+build lambda(s) code in single enter?
+- [ ] Codepipeline
+应用升级管理
+- [ ] CDK代码优化
+封装，抽象
 
-- [x] 支持多机器人配置
-- [x] 机器人菜单支持多support账号选择
-- [x] 机器人支持自定义菜单配置
-- [x] 机器人支持AWS中国区部署
-- [x] 通过环境变量或者代码逻辑判断lambda执行环境所在位置，AWS多region自适应
-- [x] 机器人增加广域网调用support API重试机制
-- [x] 忽略飞书重复消息重传
-- [x] 已关闭CASE收到飞书端更新后，把case状态转为open
-- [ ] DDB table TTL 设置，自动过期历史数据
-- [ ] DDB table billing-mode优化
-- [x] lambda内存优化
-- [x] SAM自动化部署
-- [ ] lambda本地开发及测试
-- [x] 代码开源
-- [ ] ~~周期性执行函数爬取非机器人开的case~~
-- [x] 通过case群提交附件功能
-- [ ] 把飞书用户的email地址添加到cc list功能
-- [x] support API选择region （支持中国区）
-- [x] 优化提示文案内容
-- [x] 富文本消息卡片支持
-- [x] 多飞书用户支持测试
-- [ ] 去掉代码中的无效常量，包括credential
-- [ ] 把support AKSK保存在secret manager / 通过Assume role访问support API
-- [ ] 优化调用海外support API延时的重试机制
-- [x] 支持案例题目文本正则优化
-- [ ] 机器人增加health API订阅功能
-- [x] 测试lambda on arm平台
-- [x] 在机器人开的case群中，使用飞书会话标签ChatTab保存Case Link
+## functions
+- [x] go runtime update
+1.17 -> 1.20
+
+- [x] aws sdk update
+aws-sdk-go-v2 (current version)
+
+- [x] 替换不稳定老版本飞书API
+https://github.com/larksuite/oapi-sdk-go
+https://open.feishu.cn/document/home/index
+
+send msg, send card， get contact已更新为sdk
+
+未使用飞书sdk的接口：数据结构和接口url未变更
+	downloadUrl      = "https://open.feishu.cn/open-apis/im/v1/messages/%s/resources/%s?type=%s"
+	tokenUrl         = "https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal/"
+	createChatTabUrl = "https://open.feishu.cn/open-apis/im/v1/chats/%s/chat_tabs"
+
+（官方没有API生命周期说明，未来会不会再变？）
+
+- [x] assume role mode
+通过获取目标role（account ID，role name）获取权限；
+把目标账号的role写在ddb config表里面
+
+- [ ] 拆分lambda（restAPI）为3个： 
+  1. 请求事件地址API+核心lambda（核心逻辑）；（已完成）
+https://open.feishu.cn/document/server-docs/event-subscription-guide/overview
+  2. 消息卡片请求地址API+消息卡片处理lambda（卡片处理）；
+https://open.feishu.cn/document/server-docs/im-v1/message-card/overview
+  3. 周期性刷新case逻辑lambda;
+数据结构未变，裁剪
+
+- [ ] at bot in non-case group, (非工单群需要at，工单群不需要at -- 附件上传功能需要确认)
+场景待确认
+
+- [ ] Get user information from Contact (通讯录)
+user_id 和用户名是否是一一对应关系？
+https://open.feishu.cn/document/server-docs/contact-v3/user/get?appId=cli_a45b7fdd6cf8100b
+https://open.feishu.cn/document/server-docs/contact-v3/user/batch_get_id?appId=cli_a45b7fdd6cf8100b
+
+
+- [x] 增加可以使用机器人的飞书用户的白名单表 
+https://open.feishu.cn/document/faq/trouble-shooting/how-to-obtain-user-id
+当前用user_id, 是否有可读性比较好的维护方式？
+
+- [x] store app key/app secret to secret manager
+cdk部署时加入输入appkey和secret的参数,保存在ssm
+
+
+- [ ] 扫描历史工单功能
+  1. 小卡片表格格式输出
+  2. 基于scan接口
+  3. 重构
+
+
+## ddb 数据生命周期管理
+- [ ] 快速过期audit表的数据
+CDK实现
+
+## Instrument 
+- [ ] xray-go
+https://github.com/aws/aws-xray-sdk-go
+
+## WAF
+还没想好～

@@ -1,7 +1,0 @@
-version = 0.2
-[default]
-[default.deploy]
-[default.deploy.parameters]
-stack_name = "larkbotv2"
-capabilities = "CAPABILITY_IAM"
-image_repositories = []

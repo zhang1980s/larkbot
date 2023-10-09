@@ -1,1 +1,0 @@
-aws support describe-services
