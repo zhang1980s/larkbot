@@ -5,6 +5,8 @@ import (
 	"msg-event/dao"
 	"msg-event/model/event"
 	"msg-event/services/api"
+	"regexp"
+	"time"
 
 	"github.com/sirupsen/logrus"
 )
@@ -26,10 +28,13 @@ func (s *searcher) Handle(e *event.Msg, time string) (c *dao.Case, err error) {
 		return nil, err
 	}
 
-	title := ""
+	title := "案例号\\t\\t 题目\\t\\t 创建时间\\t\\t\\t 案例状态\\n"
 	for _, v := range cs {
-		s := fmt.Sprintf("[%s](%s) %s \\n", v.CaseID, v.CaseURL, v.Title)
-		title += s
+		if v.Status != "NEW" && v.Status != "OPEN" {
+			s := fmt.Sprintf("[%s](%s)\\t %s\\t %s\\t %s\\n", v.DisplayCaseID, v.CaseURL, v.Title, formatTimestype(v.CreateTime), v.Status)
+			title += s
+		}
+
 	}
 	_, err = dao.SendMsgToChannel(fromChannelID, title)
 	if err != nil {
@@ -37,4 +42,23 @@ func (s *searcher) Handle(e *event.Msg, time string) (c *dao.Case, err error) {
 		return nil, err
 	}
 	return nil, nil
+}
+
+func formatTimestype(input string) string {
+	inputFormat := "2006-01-02 15:04:05.999999999 -0700 MST"
+	outputFormat := "January 2, 2006 MST"
+
+	re := regexp.MustCompile(` m=[+-]?\d+\.\d+`)
+
+	input = re.ReplaceAllString(input, "")
+
+	t, err := time.Parse(inputFormat, input)
+	if err != nil {
+		logrus.Infof("Error parsing input: %v", err)
+		return ""
+	}
+
+	output := t.Format(outputFormat)
+
+	return output
 }

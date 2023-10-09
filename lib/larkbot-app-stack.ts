@@ -121,7 +121,7 @@ export class LarkbotAppStack extends cdk.Stack {
       handler: 'bootstrap',
       code: lambda.Code.fromAsset('lambda/msg-event'),
       tracing: lambda.Tracing.ACTIVE,
-      timeout: cdk.Duration.minutes(3),
+      timeout: cdk.Duration.minutes(10),
       environment: {
         AUDIT_TABLE: auditTable.tableName,
         CASES_TABLE: botCasesTable.tableName,
@@ -161,99 +161,6 @@ export class LarkbotAppStack extends cdk.Stack {
     botCasesTable.grantReadWriteData(msgEventAlias)
     botConfigTable.grantReadWriteData(msgEventAlias)
 
-
-    // // Define cardEvent handler
-    // const cardEventFunction = new lambda.Function(this,'larkbot-card-event', {
-    //   runtime: lambda.Runtime.PROVIDED_AL2,
-    //   architecture: lambda.Architecture.ARM_64,
-    //   handler: 'bootstrap',
-    //   code: lambda.Code.fromAsset('lambda/card-event'),
-    //   tracing: lambda.Tracing.ACTIVE,
-    //   environment: {
-    //     AUDIT_TABLE: auditTable.tableName,
-    //     CASES_TABLE: botCasesTable.tableName,
-    //     CFG_TABLE: botConfigTable.tableName,
-    //     CFG_KEY: 'LarkBotProfile-0',
-    //     APP_ID: AppIDSecret.secretArn,
-    //     APP_SECRET: AppSecretSecret.secretArn,
-    //   }
-    // } );
-
-    // const cardEventVersion = cardEventFunction.currentVersion;
-
-    // const cardEventAlias = new lambda.Alias(this, 'card-event-prod', {
-    //   aliasName: 'Prod',
-    //   version: cardEventVersion,
-    // });
-
-    // // Attch the policy document that allow to access Secret ARN of the AppID and AppSecret
-
-    //   AppIDSecret.grantRead(cardEventAlias)
-    //   AppSecretSecret.grantRead(cardEventAlias)
-
-
-    // // Attach the policy document that allow to assume the support role in others accounts to the lambda function's role
-    //     cardEventAlias.addToRolePolicy(new iam.PolicyStatement(
-    //       {
-    //         sid: 'AllowToAssumeToRoleWithSupportAPIAccess',
-    //         effect: iam.Effect.ALLOW,
-    //         actions: ['sts:AssumeRole'],
-    //         resources: ['arn:aws:iam:::role/customSupportAll*']
-    //       }
-    //     ))
-
-    // // Grant RW access of audit table to larkbot function 
-
-    // auditTable.grantReadWriteData(cardEventAlias)
-    // botCasesTable.grantReadWriteData(cardEventAlias)
-    // botConfigTable.grantReadWriteData(cardEventAlias)
-
-
-    // // Define caseRefresh handler
-    // const caseRefreshFunction = new lambda.Function(this,'larkbot-case-refresh', {
-    //   runtime: lambda.Runtime.PROVIDED_AL2,
-    //   architecture: lambda.Architecture.ARM_64,
-    //   handler: 'bootstrap',
-    //   code: lambda.Code.fromAsset('lambda/case-refresh'),
-    //   tracing: lambda.Tracing.ACTIVE,
-    //   environment: {
-    //     AUDIT_TABLE: auditTable.tableName,
-    //     CASES_TABLE: botCasesTable.tableName,
-    //     CFG_TABLE: botConfigTable.tableName,
-    //     CFG_KEY: 'LarkBotProfile-0',
-    //     APP_ID: AppIDSecret.secretArn,
-    //     APP_SECRET: AppSecretSecret.secretArn,
-    //   }
-    // } );
-
-    // const caseRefreshVersion = caseRefreshFunction.currentVersion;
-
-    // const caseRefreshAlias = new lambda.Alias(this, 'case-refresh-prod', {
-    //   aliasName: 'Prod',
-    //   version: caseRefreshVersion,
-    // });
-
-    // // Attch the policy document that allow to access Secret ARN of the AppID and AppSecret
-
-    //   AppIDSecret.grantRead(caseRefreshAlias)
-    //   AppSecretSecret.grantRead(caseRefreshAlias)
-
-
-    // // Attach the policy document that allow to assume the support role in others accounts to the lambda function's role
-    //     caseRefreshAlias.addToRolePolicy(new iam.PolicyStatement(
-    //       {
-    //         sid: 'AllowToAssumeToRoleWithSupportAPIAccess',
-    //         effect: iam.Effect.ALLOW,
-    //         actions: ['sts:AssumeRole'],
-    //         resources: ['arn:aws:iam:::role/customSupportAll*']
-    //       }
-    //     ))
-
-    // // Grant RW access of audit table to larkbot function 
-
-    // auditTable.grantReadWriteData(caseRefreshAlias)
-    // botCasesTable.grantReadWriteData(caseRefreshAlias)
-    // botConfigTable.grantReadWriteData(caseRefreshAlias)
 
     ///////////////////////////////////////////////////////////////////////
     // Define the Rest APIs for message and content card 
@@ -331,25 +238,12 @@ export class LarkbotAppStack extends cdk.Stack {
     ///////////////////////////////////////////////////////////////////////
 
     const msgEventAliasRole = msgEventAlias.role
-    // const cardEventAliasRole = cardEventAlias.role;
-    // const caseRefreshAliasRole = caseRefreshAlias.role;
 
     new cdk.CfnOutput(this, 'msgEventRoleArn', {
       value: msgEventAliasRole!.roleArn ,
       description: 'The arn of msgEventfunction',
     });
 
-    // new cdk.CfnOutput(this, 'cardEventRoleArn', {
-    //   value: cardEventAliasRole!.roleArn ,
-    //   description: 'The arn of cardEventfunction',
-    // });
-
-    // new cdk.CfnOutput(this, 'caseRefreshRoleArn', {
-    //   value: caseRefreshAliasRole!.roleArn ,
-    //   description: 'The arn of caseRefreshfunction',
-    // });
-
-     
     }
 
   }

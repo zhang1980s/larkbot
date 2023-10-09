@@ -167,13 +167,17 @@ func GetCasesByTime(t string) (cs []*Case, err error) {
 	logrus.Infof("Start to get all cases by time: %v", t)
 	client := GetDBClient()
 
+	if t == "" {
+		t = "7"
+	}
+
 	intTime, err := strconv.Atoi(t)
 	if err != nil {
 		logrus.Errorf("failed to convert time to int %s", err)
 		return nil, err
 	}
 
-	limit := 10
+	// limit := 10
 	cs = []*Case{}
 	params := &dynamodb.ScanInput{
 		TableName:        aws.String(tableName),
@@ -200,7 +204,7 @@ func GetCasesByTime(t string) (cs []*Case, err error) {
 			fmt.Println("Error unmarshaling DynamoDB items:", err)
 			return nil, err
 		}
-		logrus.Infof("Get %v cases completed", limit)
+		// logrus.Infof("Get %v cases completed", limit)
 		cs = append(cs, items...)
 		if result.LastEvaluatedKey == nil {
 			break
