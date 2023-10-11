@@ -134,9 +134,20 @@ func SendErrCardMsg(chatId, userID string, e error) error {
 }
 
 func getToken() (t *model.TokenResp, err error) {
+
+	id, err := GetAppID()
+	if err != nil {
+		panic(err)
+	}
+
+	sec, err := GetAPPSecret()
+	if err != nil {
+		panic(err)
+	}
+
 	trq := &model.TokenReq{
-		AppID:     config.Conf.AppID,
-		AppSecret: config.Conf.AppSecret,
+		AppID:     id,
+		AppSecret: sec,
 	}
 
 	jsonStr, err := json.Marshal(trq)
