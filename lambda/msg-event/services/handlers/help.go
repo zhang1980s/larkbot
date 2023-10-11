@@ -27,3 +27,7 @@ func (h *helper) Handle(e *event.Msg, title string) (c *dao.Case, err error) {
 	caze.CardRespMsgID = *rsp.Data.MessageId
 	return dao.UpsertCase(caze)
 }
+
+func (s *helper) ShouldHandle() bool {
+	return true
+}

@@ -62,3 +62,7 @@ func formatTimestype(input string) string {
 
 	return output
 }
+
+func (s *searcher) ShouldHandle() bool {
+	return true
+}

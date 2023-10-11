@@ -39,3 +39,7 @@ func (s *accountServ) Handle(e *event.Msg, str string) (c *dao.Case, err error) 
 	}
 	return dao.UpsertCase(c)
 }
+
+func (s *accountServ) ShouldHandle() bool {
+	return true
+}

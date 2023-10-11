@@ -39,3 +39,7 @@ func (s *commentsServ) Handle(e *event.Msg, str string) (c *dao.Case, err error)
 	dao.SendMsg(c.ChannelID, c.UserID, config.Conf.Ack)
 	return c, nil
 }
+
+func (s *commentsServ) ShouldHandle() bool {
+	return true
+}

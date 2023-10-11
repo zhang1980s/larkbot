@@ -41,3 +41,7 @@ func (s *serv) Handle(e *event.Msg, str string) (c *dao.Case, err error) {
 	}
 	return dao.UpsertCase(c)
 }
+
+func (s *serv) ShouldHandle() bool {
+	return true
+}

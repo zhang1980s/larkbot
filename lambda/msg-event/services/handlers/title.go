@@ -43,3 +43,7 @@ func (s *titleServ) Handle(e *event.Msg, title string) (c *dao.Case, err error) 
 	c.CardRespMsgID = *rsp.Data.MessageId
 	return dao.UpsertCase(c)
 }
+
+func (s *titleServ) ShouldHandle() bool {
+	return true
+}

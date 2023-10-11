@@ -46,3 +46,7 @@ func (s *openCaseServ) Handle(e *event.Msg, title string) (c *dao.Case, err erro
 	return dao.OpenCase(fromChannelID, customerID, title, *rsp.Data.MessageId, config.Conf.CaseCardTemplate)
 
 }
+
+func (s *openCaseServ) ShouldHandle() bool {
+	return true
+}
