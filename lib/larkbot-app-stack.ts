@@ -121,7 +121,7 @@ export class LarkbotAppStack extends cdk.Stack {
       handler: 'bootstrap',
       code: lambda.Code.fromAsset('lambda/msg-event'),
       tracing: lambda.Tracing.ACTIVE,
-      timeout: cdk.Duration.minutes(10),
+      timeout: cdk.Duration.minutes(1),
       environment: {
         AUDIT_TABLE: auditTable.tableName,
         CASES_TABLE: botCasesTable.tableName,
@@ -214,8 +214,8 @@ export class LarkbotAppStack extends cdk.Stack {
     ///////////////////////////////////////////////////////////////////////
 
     const refreshEventRule = new events.Rule(this, 'refreshCaseRule', {
-      schedule: events.Schedule.rate(cdk.Duration.minutes(2)),
-      description: "Refresh case update every 2 minutes",
+      schedule: events.Schedule.rate(cdk.Duration.minutes(5)),
+      description: "Refresh case update every 5 minutes",
       enabled: true,
     })
 
