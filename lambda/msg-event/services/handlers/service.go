@@ -40,6 +40,6 @@ func (s *serviceServ) Handle(e *event.Msg, str string) (c *dao.Case, err error) 
 	return dao.UpsertCase(c)
 }
 
-func (s *serviceServ) ShouldHandle() bool {
+func (s *serviceServ) ShouldHandle(e *event.Msg) bool {
 	return true
 }

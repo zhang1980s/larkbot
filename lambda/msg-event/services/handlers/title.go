@@ -44,6 +44,6 @@ func (s *titleServ) Handle(e *event.Msg, title string) (c *dao.Case, err error) 
 	return dao.UpsertCase(c)
 }
 
-func (s *titleServ) ShouldHandle() bool {
+func (s *titleServ) ShouldHandle(e *event.Msg) bool {
 	return true
 }

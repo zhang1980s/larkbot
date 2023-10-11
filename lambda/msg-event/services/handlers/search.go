@@ -63,6 +63,6 @@ func formatTimestype(input string) string {
 	return output
 }
 
-func (s *searcher) ShouldHandle() bool {
+func (s *searcher) ShouldHandle(e *event.Msg) bool {
 	return true
 }

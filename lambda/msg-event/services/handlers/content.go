@@ -42,6 +42,6 @@ func (s *contentServ) Handle(e *event.Msg, content string) (c *dao.Case, err err
 	return dao.UpsertCase(c)
 }
 
-func (s *contentServ) ShouldHandle() bool {
+func (s *contentServ) ShouldHandle(e *event.Msg) bool {
 	return true
 }

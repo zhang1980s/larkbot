@@ -40,6 +40,6 @@ func (s *commentsServ) Handle(e *event.Msg, str string) (c *dao.Case, err error)
 	return c, nil
 }
 
-func (s *commentsServ) ShouldHandle() bool {
+func (s *commentsServ) ShouldHandle(e *event.Msg) bool {
 	return true
 }

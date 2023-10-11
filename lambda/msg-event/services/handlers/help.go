@@ -28,6 +28,6 @@ func (h *helper) Handle(e *event.Msg, title string) (c *dao.Case, err error) {
 	return dao.UpsertCase(caze)
 }
 
-func (s *helper) ShouldHandle() bool {
+func (s *helper) ShouldHandle(e *event.Msg) bool {
 	return true
 }

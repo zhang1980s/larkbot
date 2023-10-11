@@ -47,6 +47,6 @@ func (s *openCaseServ) Handle(e *event.Msg, title string) (c *dao.Case, err erro
 
 }
 
-func (s *openCaseServ) ShouldHandle() bool {
+func (s *openCaseServ) ShouldHandle(e *event.Msg) bool {
 	return true
 }
