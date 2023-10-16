@@ -6,6 +6,12 @@
 
 ![架构示意图](picture/larkbot_architecture_3.0.png)
 
+
+## 操作方式
+---
+
+
+
 ## 部署和配置
 ---
 机器人通过SDK实现自动化部署及更新。部署和配置过程主要包含四个步骤，分别是：
@@ -13,7 +19,7 @@
 1. CDK 部署机器人后端资源
 2. 在飞书开放平台创建自定义机器人应用，设置消息卡片请求地址及事件订阅请求地址
 3. 在DynamoDB中配置机器人的自定义参数
-4. 创建Support API role
+4. 创建SupportAPI角色
 
 下面分别介绍每个步骤的详细操作方式。
 
@@ -148,6 +154,7 @@ LarkbotAppStack.msgEventapiEndpointAC31EC6D = https://t68l424zt0.execute-api.ap-
 
 
 #### 创建自定义机器人应用
+---
 
 1. 访问飞书开放平台https://open.feishu.cn, 确认已经使用飞书账号登陆飞书开放平台
 
@@ -217,10 +224,19 @@ https://t68l424zt0.execute-api.ap-northeast-1.amazonaws.com/prod/messages
 
 11. 获取AppID和AppSecret
 
+
 #### 在DynamoDB中配置机器人的自定义参数
+---
 
 
-#### 
-## TODO
+#### 创建SupportAPI角色
+---
 
-[def]: picture/msg-subscription.jpeg
+
+## 成本预估
+---
+
+
+## TODO列表
+---
+[TODO List](TODO.md)

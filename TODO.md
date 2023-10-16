@@ -36,9 +36,12 @@ https://open.feishu.cn/document/home/index
 send msg, send card， get contact已更新为sdk
 
 未使用飞书sdk的接口：数据结构和接口url未变更
+```
 	downloadUrl      = "https://open.feishu.cn/open-apis/im/v1/messages/%s/resources/%s?type=%s"
 	tokenUrl         = "https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal/"
 	createChatTabUrl = "https://open.feishu.cn/open-apis/im/v1/chats/%s/chat_tabs"
+```
+
 
 （官方没有API生命周期说明，未来会不会再变？）
 
@@ -46,7 +49,7 @@ send msg, send card， get contact已更新为sdk
 通过获取目标role（account ID，role name）获取权限；
 把目标账号的role写在ddb config表里面
 
-- [ ] 拆分lambda（restAPI）为3个： 
+- [ ] 拆分lambda（restAPI）为3个： (lambda layer??)
   1. 请求事件地址API+核心lambda（核心逻辑）；（已完成）
 https://open.feishu.cn/document/server-docs/event-subscription-guide/overview
   2. 消息卡片请求地址API+消息卡片处理lambda（卡片处理）；
@@ -71,6 +74,11 @@ https://open.feishu.cn/document/faq/trouble-shooting/how-to-obtain-user-id
 cdk部署时加入输入appkey和secret的参数,保存在ssm
 
 - [x] 扫描历史工单功能
+- [ ] 配置检查关键字
+机器人设置完成后，通过检查关键字对dynamodb表中的配置进行验证
+- [ ] 飞书机器人API，调用机器人API创建CASE群 
+和limit监控机器人结合，当提升limit需求需要人工介入时，自动把service quota创建的case导入到飞书机器人中。（CASE语言问题?）
+
 
 ## 机器人后端维护
 - [ ] TTL过期audit表的数据
@@ -84,4 +92,4 @@ CDK实现
 https://github.com/aws/aws-xray-sdk-go
 
 ## WAF
-还没想好～
+- [ ] WAF
