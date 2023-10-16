@@ -254,6 +254,7 @@ type Case struct {
 	Title           string    `dynamodbav:"title"`
 	CaseID          string    `dynamodbav:"case_id"`
 	CaseURL         string    `dynamodbav:"case_url"`
+	CaseAccountID   string    `dynamodbav:"case_accountid"`
 	Content         string    `dynamodbav:"content"`
 	Status          string    `dynamodbav:"status"`
 	ServiceCode     string    `dynamodbav:"service_code"`
