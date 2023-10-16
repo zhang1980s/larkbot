@@ -10,3 +10,4 @@ test
 lambda/card-event
 lambda/case-refresh
 lambda/Makefile
+lambda/msg-event/msg-event.zip
