@@ -3,6 +3,17 @@
 ## Architecture
 
 ## Deployment 
+1. 初始化cdk环境
+
+cdk bootstrap aws://<accountID>/<region>
+
+
+默认使用LarkbotAppStack作为stackname。通过输入 --context stackName 参数自定义stackName
+./cdk-deploy-to.sh <accountID> <region> --context stackName=<stackname> --profile <profile>
+
+2. 部署
+3. 更新代码
+4. 删除飞书机器人
 
 ## Bot Configuration 
 

@@ -1,16 +1,24 @@
 ## Deployment
 - [x] CDK部署
-apigw/lambda/ddb/ssm secrets/eventbridge rule 资源，
+apigw/lambda/ddb/ssm secrets/eventbridge rule 资源
+支持默认region，默认account参数。
+
 - [x] modify go runtime to custom runtime
 provided.al2 on arm64
+
 - [x] 不使用fixed的ddb表名
+
 - [x] lambda version/alias
+
 - [ ] stackset自动创建role
 带support API role的org集中管理模式 （集成在larkbot app？ 分开的app？）
+
 - [ ] Makefile
 build lambda(s) code in single enter?
+
 - [ ] Codepipeline
 应用升级管理
+
 - [ ] CDK代码优化
 封装，抽象
 
@@ -62,12 +70,7 @@ https://open.feishu.cn/document/faq/trouble-shooting/how-to-obtain-user-id
 - [x] store app key/app secret to secret manager
 cdk部署时加入输入appkey和secret的参数,保存在ssm
 
-
-- [ ] 扫描历史工单功能
-  1. 小卡片表格格式输出
-  2. 基于scan接口
-  3. 重构
-
+- [x] 扫描历史工单功能
 
 ## ddb 数据生命周期管理
 - [ ] 快速过期audit表的数据
