@@ -72,9 +72,12 @@ cdk部署时加入输入appkey和secret的参数,保存在ssm
 
 - [x] 扫描历史工单功能
 
-## ddb 数据生命周期管理
-- [ ] 快速过期audit表的数据
+## 机器人后端维护
+- [ ] TTL过期audit表的数据
+https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/TTL.html
 CDK实现
+- [ ] 定期清除cloudwatch log
+CDK实现  
 
 ## Instrument 
 - [ ] xray-go
