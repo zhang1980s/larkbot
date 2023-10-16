@@ -28,10 +28,11 @@ func (s *searcher) Handle(e *event.Msg, time string) (c *dao.Case, err error) {
 		return nil, err
 	}
 
-	title := "案例号\\t\\t\\t 题目\\t\\t\\t 创建时间\\t\\t\\t 案例状态\\n"
+	title := "案例号\\t\\t\\t 账号\\t\\t\\t 创建时间\\t\\t\\t\\t 案例状态\\t\\t 题目 \\n"
 	for _, v := range cs {
-		if v.Status != "NEW" && v.Status != "OPEN" {
-			s := fmt.Sprintf("[%s](%s)\\t\\t\\t %s\\t\\t\\t %s\\t\\t\\t %s\\n", v.DisplayCaseID, v.CaseURL, v.Title, formatTimestype(v.CreateTime), v.Status)
+		// if v.Status != "NEW" && v.Status != "OPEN" {
+		if v.Status != "NEW" && v.Title != "" {
+			s := fmt.Sprintf("[%s](%s)\\t %s\\t %s\\t %s\\t\\t %s\\n", v.DisplayCaseID, v.CaseURL, v.CaseAccountID, formatTimestype(v.CreateTime), v.Status, v.Title)
 			title += s
 		}
 

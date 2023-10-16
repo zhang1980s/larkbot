@@ -170,6 +170,13 @@ func CreateCaseAndChannel(c *Case) (*Case, error) {
 	}
 	c.CaseURL = url
 
+	a, ok := config.Conf.Accounts[c.AccountKey]
+	if !ok {
+		panic("failed to get account " + c.AccountKey)
+	}
+
+	c.CaseAccountID = GetAccountIdFromRoleARN(a.RoleARN)
+
 	c, err = UpsertCase(c)
 	if err != nil {
 		logrus.Errorf("failed to update case info %s", err)
@@ -341,4 +348,17 @@ func FormatComments(comments []types.Communication) string {
 
 func FormatMsg(caze *Case) string {
 	return fmt.Sprintln("工单创建必要内容缺失。请输入帮助关键字获取使用信息")
+}
+
+func GetAccountIdFromRoleARN(s string) string {
+	arn := s
+	re := regexp.MustCompile(`(?:::)(\d+)(?::)`)
+	match := re.FindStringSubmatch(arn)
+
+	if len(match) > 1 {
+		result := match[1]
+		return result
+	} else {
+		return "0000"
+	}
 }
