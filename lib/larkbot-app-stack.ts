@@ -216,7 +216,7 @@ export class LarkbotAppStack extends cdk.Stack {
     const refreshEventRule = new events.Rule(this, 'refreshCaseRule', {
       schedule: events.Schedule.rate(cdk.Duration.minutes(5)),
       description: "Refresh case update every 5 minutes",
-      enabled: true,
+      enabled: false,
     })
 
     refreshEventRule.addTarget(new targets.LambdaFunction(msgEventAlias, {
