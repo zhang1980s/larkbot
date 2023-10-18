@@ -43,6 +43,8 @@ func (s *commentsServ) Handle(e *event.Msg, str string) (c *dao.Case, err error)
 		logrus.Infof("change the case status to OPEN for re-open case %v", c.Status)
 	}
 
+	dao.UpsertCase(c)
+
 	return c, nil
 }
 
