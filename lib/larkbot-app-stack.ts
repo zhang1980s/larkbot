@@ -151,7 +151,7 @@ export class LarkbotAppStack extends cdk.Stack {
             sid: 'AllowToAssumeToRoleWithSupportAPIAccess',
             effect: iam.Effect.ALLOW,
             actions: ['sts:AssumeRole'],
-            resources: ['arn:aws:iam:::role/customSupportAll*']
+            resources: ['arn:aws:iam::*:role/FeishuSupportCaseApiAll*']
           }
         ))
 
