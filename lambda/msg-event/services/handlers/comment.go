@@ -37,6 +37,12 @@ func (s *commentsServ) Handle(e *event.Msg, str string) (c *dao.Case, err error)
 	}
 
 	dao.SendMsg(c.ChannelID, c.UserID, config.Conf.Ack)
+
+	if c.Status == dao.STATUS_CLOSE {
+		c.Status = dao.STATUS_OPEN
+		logrus.Infof("change the case status to OPEN for re-open case")
+	}
+
 	return c, nil
 }
 
