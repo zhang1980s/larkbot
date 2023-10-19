@@ -4,7 +4,6 @@ go.work
 go.work.sum
 node_modules
 .vscode
-ddb-example
 cdk.out
 test
 lambda/card-event
