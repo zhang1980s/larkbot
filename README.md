@@ -87,6 +87,7 @@ https://docs.aws.amazon.com/cdk/v2/guide/bootstrapping.html
 
 ```
 $ cd larkbot
+$ npm i --save-dev @types/node
 $ ./cdk-deploy-to.sh <accountID> <region> --context stackName=<stackname> --profile <profile>
 ```
 
@@ -167,6 +168,7 @@ LarkbotAppStack.msgEventapiEndpointAC31EC6D = https://t68l424zt0.execute-api.ap-
 ![创建企业自建应用-2](picture/create-custom-app-1.png)
 
 4. 在添加应用能力页面中，点击机器人选项框左下角中的添加按钮
+
 ![添加应用能力](picture/create-custom-app-2.png)
 
 5. 在机器人配置的主页中，点击机器人配置标题右侧的粉笔按钮编辑机器人配置
@@ -196,6 +198,7 @@ https://t68l424zt0.execute-api.ap-northeast-1.amazonaws.com/prod/messages
 
 （飞书会向该URL发送一个challenge值并且要求1s回复challenge的值，如果无法及时返回则提示请求URL验证未通过）
 
+
 7. 点击页面左侧中开发配置段落中的事件订阅功能，在事件订阅功能中配置请求地址，输入和消息卡片请求网址相同的URL
 
 
@@ -221,6 +224,7 @@ https://t68l424zt0.execute-api.ap-northeast-1.amazonaws.com/prod/messages
 飞书管理员需要授权飞书机器人执行一些必要的单聊或群聊消息接收，发送，读取基本通讯录信息及附件处理功能的权限。在机器人配置的主页中，点击页面最左侧的开发配置段落中的权限管理功能。
 
 **消息与群组权限**
+
 在屏幕中央的权限配置的页面中，选择消息与群组，点击选择下面截屏中全部的权限。
 
 ![消息与群组权限1](picture/feishu-permission-1.jpeg)
@@ -230,6 +234,7 @@ https://t68l424zt0.execute-api.ap-northeast-1.amazonaws.com/prod/messages
 ![消息与群组权限2](picture/feishu-permission-2.jpeg)
 
 **通讯录权限**
+
 选择权限配置中的通讯录权限，添加下列两个权限。
 
 ![通讯录权限1](picture/feishu-permission-2.5.jpeg)
@@ -277,12 +282,15 @@ https://t68l424zt0.execute-api.ap-northeast-1.amazonaws.com/prod/messages
 App ID 飞书平台标记应用的唯一标识。App Secret是用于获取应用app_access_token的密钥。飞书工单机器人后端会把这两个重要信息保存在Secret Manager中。
 
 **获取AppID和AppSecret**
+
 在飞书机器人配置主页，在页面左侧的基础信息段落中，找到凭证与基础信息配置。获取应用凭证中的App ID和 App Secret内容。
+
 ![获取AppID](picture/feishu-appid.jpeg)
 
 **在Secret Manager中更新Secret内容**
 
 把这两个内容分别填入cdk在secret manager服务中创建两个Secret中：
+
 ![Secret Manager](picture/secretManager-1.jpeg)
 
 点击进入对应的Secret Manager的资源，找到Secret Value，点击Edit，把对应的机器人AppID和AppSecret信息输入对应的Secret值。
@@ -313,6 +321,7 @@ LarkbotAppStack.msgEventRoleArn = arn:aws:iam::123456789012:role/larkbot-larkbot
 
 
 示例policy样式：
+
 ```
 {
     "Version": "2012-10-17",
@@ -332,9 +341,9 @@ LarkbotAppStack.msgEventRoleArn = arn:aws:iam::123456789012:role/larkbot-larkbot
 
 ![选择权限](picture/support-role-2.jpeg)
 
-点击下一步输入角色名 "arn:aws:iam::<AccountID>:role/FeishuSupportCaseApiAll<自定义后缀>"
+点击下一步输入角色名 "arn:aws:iam::<AccountID>:role/FeishuSupportCaseApiAll<自定义后缀>"。
 
-如需使用自定义的角色名，需要在lambda 的larkbotmsgeventServiceRoleDefaultPolicy中允许lambda assume到自定义role
+如需使用自定义的角色名，需要在lambda 的larkbotmsgeventServiceRoleDefaultPolicy中允许lambda assume到自定义role。
 
 例如：
 
@@ -351,11 +360,12 @@ LarkbotAppStack.msgEventRoleArn = arn:aws:iam::123456789012:role/larkbot-larkbot
 
 ```
 
-记录所有新创建role的ARN
+记录所有新创建role的ARN。
 
 
 #### 在DynamoDB中配置机器人的自定义参数
 ---
+
 机器人的配置可以通过CDK创建的DynamoDB中以<stackname>-botconfig<cloudformation后缀>命名的表中配置。
 
 每个机器人使用一个配置文件，通过lambda环境变量中的CFG_KEY指定，默认值是LarkBotProfile-0。每个CFG_KEY对应DyanmoDB中的一条记录。记录的Primary Key的值就是CFG_KEY对应的值。
@@ -456,6 +466,7 @@ LarkbotAppStack.msgEventRoleArn = arn:aws:iam::123456789012:role/larkbot-larkbot
 ```
 
 下面示例显示了小卡片菜单中显示的名称和上面配置中定义的项目数字的对应关系。content内容可以自定义。
+
 ```
           {
            "text": {
@@ -484,6 +495,7 @@ LarkbotAppStack.msgEventRoleArn = arn:aws:iam::123456789012:role/larkbot-larkbot
 
 
 下面示例设置了机器人支持的工单服务级别。
+
 ```
     "sev_map": {
      "critical": "critical",
@@ -496,6 +508,7 @@ LarkbotAppStack.msgEventRoleArn = arn:aws:iam::123456789012:role/larkbot-larkbot
 
 
 下面示例设置了小卡片可选择的服务级别及菜单提示信息。content内容可以自定义。
+
 ```
           {
            "text": {
@@ -537,6 +550,7 @@ LarkbotAppStack.msgEventRoleArn = arn:aws:iam::123456789012:role/larkbot-larkbot
 ###### 其他可配置的选项
 
 * 工单群中收到回复和附件后机器人的回复信息
+
 ```
     "ack": "回复已经收到",
 ```
