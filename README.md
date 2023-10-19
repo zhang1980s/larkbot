@@ -1,6 +1,6 @@
-# 企业飞书即时通信工具AWS工单系统接入方案
+# 飞书AWS工单机器人 - 企业飞书即时通信工具AWS工单系统接入方案 
 ---
-飞书AWS是一套基于飞书企业通信工具的方便用户和AWS售后工程师快捷文字沟通的工具。飞书用户可以通过简单的机器人关键字和飞书小卡片互动，向AWS售后工程师团队提交支持案例，更新案例内容，以及准实时接收来自后台工程师的更新。
+飞书AWS工单机器人是一套基于飞书企业通信工具的方便用户和AWS售后工程师快捷文字沟通的工具。飞书用户可以通过简单的机器人关键字和飞书小卡片互动，向售后工程师团队提交支持案例，更新案例内容，以及准实时接收来自后台工程师的更新。
 
 ## 架构图
 
@@ -23,10 +23,10 @@
 
 下面分别介绍每个步骤的详细操作方式。
 
-#### CDK部署机器人后端
+#### CDK部署机器人服务端
 ---
 
-飞书机器人可以选择在一个AWS账号中部署，通过assume role的方式调用其他账号（包括本账号）的role进行support API操作。部署账号本身没有特殊要求。由于飞书服务器端在国内，并且发送请求时对回调地址（机器人服务器端）的请求有响应时间的要求，因此应该尽量选择距离国内较近的region。实测发现飞书服务器端到日本和新加坡Region的延迟相对较低，建议选在在这两个region部署。
+飞书机器人服务端可以选择在一个AWS账号中部署，通过assume role的方式调用其他账号（包括本账号）的role进行support API操作。部署账号本身没有特殊要求。由于飞书服务器端在国内，并且发送请求时对回调地址（机器人服务器端）的请求有响应时间的要求，因此应该尽量选择距离国内较近的region。实测发现飞书服务器端到AWS日本和新加坡Region的延迟相对较低，建议在这两个region中选择一个部署。
 
 
 0. 安装CDK工具
@@ -274,16 +274,287 @@ https://t68l424zt0.execute-api.ap-northeast-1.amazonaws.com/prod/messages
 
 10. 设置AppID和AppSecret
 
+App ID 飞书平台标记应用的唯一标识。App Secret是用于获取应用app_access_token的密钥。飞书工单机器人后端会把这两个重要信息保存在Secret Manager中。
 
+**获取AppID和AppSecret**
+在飞书机器人配置主页，在页面左侧的基础信息段落中，找到凭证与基础信息配置。获取应用凭证中的App ID和 App Secret内容。
+![获取AppID](picture/feishu-appid.jpeg)
+
+**在Secret Manager中更新Secret内容**
+
+把这两个内容分别填入cdk在secret manager服务中创建两个Secret中：
+![Secret Manager](picture/secretManager-1.jpeg)
+
+点击进入对应的Secret Manager的资源，找到Secret Value，点击Edit，把对应的机器人AppID和AppSecret信息输入对应的Secret值。
+
+![编辑Secret值](picture/secretManager-2.jpeg)
+
+
+#### 创建工单API角色
+
+在需要飞书AWS工单机器人进行工单交互的账号中，创建相应的IAM Role，用于机器人通过Support API进行交互。
+
+登陆相关账号：
+
+在[Identity and Access Management (IAM)](https://us-east-1.console.aws.amazon.com/iamv2/home#/roles)页面中，选择创建个新role。
+
+选择Custom trust policy
+
+![Trusted entity](picture/support-role-1.jpeg)
+
+在Custom trust policy中的Principal中，加入CDK部署输出中msgEventRoleArn的值。
+
+示例CDK输出：
+
+```
+Outputs:
+LarkbotAppStack.msgEventRoleArn = arn:aws:iam::123456789012:role/larkbot-larkbotmsgeventServiceRoleC3080B6B-V1ESZLK7ODYY
+```
+
+
+示例policy样式：
+```
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "arn:aws:iam::123456789012:role/larkbot-larkbotmsgeventServiceRoleC3080B6B-V1ESZLK7ODYY"
+            },
+            "Action": "sts:AssumeRole"
+        }
+    ]
+}
+```
+
+点击下一步进入权限选择页面，选择"AWSSupportAooFullAccess"
+
+![选择权限](picture/support-role-2.jpeg)
+
+点击下一步输入角色名 "arn:aws:iam::<AccountID>:role/FeishuSupportCaseApiAll<自定义后缀>"
+
+如需使用自定义的角色名，需要在lambda 的larkbotmsgeventServiceRoleDefaultPolicy中允许lambda assume到自定义role
+
+例如：
+
+```
+        {
+            "Action": "sts:AssumeRole",
+            "Resource": [
+              "arn:aws:iam::<accountID>:role/<custom role name>",
+              "arn:aws:iam::<accountID>:role/<custom role name>"
+            ]
+            "Effect": "Allow",
+            "Sid": "AllowToAssumeToRoleWithSupportAPIAccess"
+        },
+
+```
+
+记录所有新创建role的ARN
 
 
 #### 在DynamoDB中配置机器人的自定义参数
 ---
+机器人的配置可以通过CDK创建的DynamoDB中以<stackname>-botconfig<cloudformation后缀>命名的表中配置。
+
+每个机器人使用一个配置文件，通过lambda环境变量中的CFG_KEY指定，默认值是LarkBotProfile-0。每个CFG_KEY对应DyanmoDB中的一条记录。记录的Primary Key的值就是CFG_KEY对应的值。
+
+在ddb-example目录中提供了一个参考配置，可以直接把内容复制到botconfig表中，基于参考配置做修改。
+
+下面是主要需要修改的配置内容
+
+###### AppID和AppSecret参数
+
+```
+    "app_id_arn": "arn:aws:secretsmanager:<region>:<accountID>:secret:AppIDSecretXXX",
+    "app_secret_arn": "arn:aws:secretsmanager:<region>:<accountID>:secret:AppSecretSecretXXX",
+```
+
+把上面参数修改为CDK创建的Secret Manager资源的对应的ARN
 
 
-#### 创建SupportAPI角色
----
+###### 指定机器人可以选择的工单账号权限
 
+根据下列格式，配置指定账号可以使用的role arn。
+```
+    "accounts": {
+     "0": {
+      "role_arn": "arn:aws:iam::<accountID>:role/FeishuSupportCaseApiAll"
+     },
+     "1": {
+      "role_arn": "arn:aws:iam::<AccountID>:role/FeishuSupportCaseApiAll"
+     }
+    },
+```
+
+在elements属性中，选择小卡片中显示的账号名。其中value的数值对应上面的Accounts的数值。content内容可以自定义。
+```
+      "elements": [
+  
+       {
+        "extra": {
+         "options": [
+          {
+           "text": {
+            "content": "我的账号1",
+            "tag": "plain_text"
+           },
+           "value": "0"
+          },
+          {
+           "text": {
+            "content": "我的账号2",
+            "tag": "plain_text"
+           },
+           "value": "1"
+          }
+         ],
+```
+
+###### 设置用户白名单
+
+添加允许使用机器人的飞书userID到白名单。
+
+```
+    "user_whitelist": {
+     "b123456": "张同学",
+     "c654321": "李同学"
+    }
+```
+
+获取用户ID方式：https://open.feishu.cn/document/home/user-identity-introduction/how-to-get
+
+
+###### 机器人支持的AWS服务
+
+
+下面示例显示机器人支持选择的服务列表：
+
+每个服务有两部分内容需要填写，第一个内容是service code，第二个内容是service category code。每个service code下通常都会有general-guidance类型的service categories。为了减少小卡片的交互，增加机器人支持的某些服务时，找到general-guidance类型的service category code填写到对应的服务项目中。 
+
+使用aws support describe-services命令获取完整的service code和service categories信息。
+
+```
+    "service_map": {
+     "0": [
+      "general-info",
+      "using-aws"
+     ],
+     "1": [
+      "amazon-elastic-compute-cloud-linux",
+      "other"
+     ],
+     "2": [
+      "amazon-simple-storage-service",
+      "general-guidance"
+     ],
+     "3": [
+      "amazon-virtual-private-cloud",
+      "general-guidance"
+     ],
+```
+
+下面示例显示了小卡片菜单中显示的名称和上面配置中定义的项目数字的对应关系。content内容可以自定义。
+```
+          {
+           "text": {
+            "content": "general-info",
+            "tag": "plain_text"
+           },
+           "value": "0"
+          },
+          {
+           "text": {
+            "content": "amazon-elastic-compute-cloud-linux",
+            "tag": "plain_text"
+           },
+           "value": "1"
+          },
+          {
+           "text": {
+            "content": "amazon-simple-storage-service",
+            "tag": "plain_text"
+           },
+           "value": "2"
+          },
+```
+
+###### 机器人支持的问题严重级别
+
+
+下面示例设置了机器人支持的工单服务级别。
+```
+    "sev_map": {
+     "critical": "critical",
+     "high": "high",
+     "low": "low",
+     "normal": "normal",
+     "urgent": "urgent"
+    },
+```
+
+
+下面示例设置了小卡片可选择的服务级别及菜单提示信息。content内容可以自定义。
+```
+          {
+           "text": {
+            "content": "low - 24小时响应",
+            "tag": "plain_text"
+           },
+           "value": "low"
+          },
+          {
+           "text": {
+            "content": "normal - 12小时响应",
+            "tag": "plain_text"
+           },
+           "value": "normal"
+          },
+          {
+           "text": {
+            "content": "high - 4小时响应",
+            "tag": "plain_text"
+           },
+           "value": "high"
+          },
+          {
+           "text": {
+            "content": "urgent - 1小时响应",
+            "tag": "plain_text"
+           },
+           "value": "urgent"
+          },
+          {
+           "text": {
+            "content": "critical - 15分钟响应",
+            "tag": "plain_text"
+           },
+           "value": "critical"
+          }
+```
+
+###### 其他可配置的选项
+
+* 工单群中收到回复和附件后机器人的回复信息
+```
+    "ack": "回复已经收到",
+```
+
+* 工单小卡片的帮助信息
+
+```
+       {
+        "content": "\n --------------\n**CASE 小助手**\n\n开AWS支持案例方法：\n1.在和机器人单独的聊天对话中，输入“开工单”关键字然后输入需要咨询的问题题目，问题题目和开工单关键字用空格隔开。\t\n\n2. 在弹出的飞书小卡片中选择问题提交问题的AWS账户，问题服务类型及问题严重级别。\t\n\n3.正确选择小卡片内容后，接下来输入关键字“内容”及具体问题描述。具体问题描述和“内容”关键字用空格隔开。描述信息建议包括：问题发生的时间及时区/涉及的资源ID及region/发生问题的现象/该问题对业务造成的影响/联系人及联系方式。\t\n\n4.案例更新：在机器人创建的新工单群里输入内容或添加附件提交工单更新。",
+        "tag": "markdown"
+       }
+```
+
+* 非白名单用户使用机器人时提示信息
+
+```
+"no_permission_msg": "你没有权限开工单，请联系XXX获取帮助"
+```
 
 ## 成本预估
 ---
