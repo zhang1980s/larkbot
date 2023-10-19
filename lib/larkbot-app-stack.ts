@@ -52,7 +52,7 @@ export class LarkbotAppStack extends cdk.Stack {
     })
 
     const AppSecretSecret = new secretsmanager.Secret(this, 'AppSecretSecret', {
-      description: 'The Secret to store the value of app Secret',
+      description: 'The Secret to store the value of App Secret',
       secretStringValue: cdk.SecretValue.cfnParameter(appSecret),
     })
     
