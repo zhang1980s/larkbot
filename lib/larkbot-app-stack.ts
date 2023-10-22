@@ -36,7 +36,15 @@ export class LarkbotAppStack extends cdk.Stack {
       type: 'String',
       description: 'Case Language queue. Should be in "zh", "ja", "ko", "en" ',
       noEcho: false,
+      allowedValues: ["zh","ja","ko","en"],
       default: 'zh'
+    })
+
+    const enableRefresh = new cdk.CfnParameter(this, 'enableRefresh', {
+      type:'bool',
+      description: 'Enable Refresh rule, disable by default',
+      noEcho: true,
+      default: false
     })
     
 
@@ -213,10 +221,11 @@ export class LarkbotAppStack extends cdk.Stack {
     // Define Eventbridge rule
     ///////////////////////////////////////////////////////////////////////
 
+    
     const refreshEventRule = new events.Rule(this, 'refreshCaseRule', {
       schedule: events.Schedule.rate(cdk.Duration.minutes(5)),
       description: "Refresh case update every 5 minutes",
-      enabled: false,
+      enabled: Boolean(enableRefresh.value)
     })
 
     refreshEventRule.addTarget(new targets.LambdaFunction(msgEventAlias, {
