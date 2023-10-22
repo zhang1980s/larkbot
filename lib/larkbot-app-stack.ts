@@ -43,7 +43,7 @@ export class LarkbotAppStack extends cdk.Stack {
     const enableRefresh = new cdk.CfnParameter(this, 'EnableRefresh', {
       type:'String',
       description: 'Enable Refresh rule, disable by default',
-      noEcho: true,
+      noEcho: false,
       default:'false'
     })
 
@@ -135,7 +135,7 @@ export class LarkbotAppStack extends cdk.Stack {
       architecture: lambda.Architecture.ARM_64,
       handler: 'bootstrap',
       code: lambda.Code.fromAsset('lambda/msg-event'),
-      tracing: lambda.Tracing.ACTIVE,
+      // tracing: lambda.Tracing.ACTIVE,
       timeout: cdk.Duration.minutes(1),
       environment: {
         AUDIT_TABLE: auditTable.tableName,
