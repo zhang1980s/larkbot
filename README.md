@@ -708,6 +708,13 @@ LarkbotAppStack.msgEventRoleArn = arn:aws:iam::123456789012:role/larkbot-larkbot
 
 访问Amazon EventBridge服务主页，在页面左侧，在Buses段落中找到找到Rules编辑页面。找到机器人对应的Rule，开启该Rule。
 
+轮询周期在Eventbridge rule相同位置调整。也可以通过cdk部署命令进行调整。默认轮询周期为10分钟，可以使用下面命令调整为其他的数值，例如：
+
+```
+./cdk-deploy-to.sh <accountID> <region> --context stackName=<stackname> --parameters RefreshInterval=20 --profile <profile>
+```
+
+上面命令把轮询周期设置为20分钟一次。
 
 （TODO：通过CDK更新开启/关闭Rule功能）
 
@@ -749,6 +756,10 @@ CASE_LANGUAGE=en
 
 ## 成本预估
 ---
+
+1. lambda / dynamodb 表的成本都可以在freetier覆盖。
+2. 需要注意cloudwatch log 的迭代，后期会加入功能自动过期历史日志
+
 
 
 
