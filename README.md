@@ -2,14 +2,38 @@
 ---
 飞书AWS工单机器人是一套基于飞书企业通信工具的方便用户和AWS售后工程师快捷文字沟通的工具。飞书用户可以通过简单的机器人关键字和飞书小卡片互动，向售后工程师团队提交支持案例，更新案例内容，以及准实时接收来自后台工程师的更新。
 
+## 目录
+---
+[架构图](#架构图)
+[操作手册](#操作手册)
+[部署和配置](#部署和配置)
+[CDK部署机器人服务端](#CDK部署机器人服务端)
+[创建自定义机器人应用](#创建自定义机器人应用)
+[创建工单API角色](#创建工单API角色)
+[在DynamoDB中配置机器人的自定义参数](#在DynamoDB中配置机器人的自定义参数)
+[设置AppID和AppSecret参数](#设置AppID和AppSecret参数)
+[设置机器人可以选择的工单账号权限](#设置机器人可以选择的工单账号权限)
+[设置机器人用户白名单](#设置机器人用户白名单)
+[设置机器人支持的AWS服务](#设置机器人支持的AWS服务)
+[设置机器人支持的工单严重级别](#设置机器人支持的工单严重级别)
+[设置卡片提示信息，机器人回复信息等(可选配置)](#设置卡片提示信息，机器人回复信息等(可选配置))
+[开启周期性轮询工单推送功能](#开启周期性轮询工单推送功能)
+[成本预估](#成本预估)
+[待开发功能](#TODO列表)
+
+
+
+
+
+
 ## 架构图
 
 ![架构示意图](picture/larkbot_architecture_3.0.png)
 
 
-## 操作方式
+## 操作手册
 ---
-
+TBD
 
 
 ## 部署和配置
@@ -374,7 +398,7 @@ LarkbotAppStack.msgEventRoleArn = arn:aws:iam::123456789012:role/larkbot-larkbot
 
 下面是主要需要修改的配置内容
 
-###### AppID和AppSecret参数
+###### 设置AppID和AppSecret参数
 
 ```
     "app_id_arn": "arn:aws:secretsmanager:<region>:<accountID>:secret:AppIDSecretXXX",
@@ -384,7 +408,7 @@ LarkbotAppStack.msgEventRoleArn = arn:aws:iam::123456789012:role/larkbot-larkbot
 把上面参数修改为CDK创建的Secret Manager资源的对应的ARN
 
 
-###### 指定机器人可以选择的工单账号权限
+###### 设置机器人可以选择的工单账号权限
 
 根据下列格式，配置指定账号可以使用的role arn。
 ```
@@ -422,7 +446,7 @@ LarkbotAppStack.msgEventRoleArn = arn:aws:iam::123456789012:role/larkbot-larkbot
          ],
 ```
 
-###### 设置用户白名单
+###### 设置机器人用户白名单
 
 添加允许使用机器人的飞书userID到白名单。
 
@@ -436,7 +460,7 @@ LarkbotAppStack.msgEventRoleArn = arn:aws:iam::123456789012:role/larkbot-larkbot
 获取用户ID方式：https://open.feishu.cn/document/home/user-identity-introduction/how-to-get
 
 
-###### 机器人支持的AWS服务
+###### 设置机器人支持的AWS服务
 
 
 下面示例显示机器人支持选择的服务列表：
@@ -491,7 +515,7 @@ LarkbotAppStack.msgEventRoleArn = arn:aws:iam::123456789012:role/larkbot-larkbot
           },
 ```
 
-###### 机器人支持的问题严重级别
+###### 设置机器人支持的工单严重级别
 
 
 下面示例设置了机器人支持的工单服务级别。
@@ -547,7 +571,7 @@ LarkbotAppStack.msgEventRoleArn = arn:aws:iam::123456789012:role/larkbot-larkbot
           }
 ```
 
-###### 其他可配置的选项
+###### 设置卡片提示信息，机器人回复信息等(可选配置)
 
 * 工单群中收到回复和附件后机器人的回复信息
 
