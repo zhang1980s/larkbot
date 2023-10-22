@@ -570,6 +570,14 @@ LarkbotAppStack.msgEventRoleArn = arn:aws:iam::123456789012:role/larkbot-larkbot
 "no_permission_msg": "你没有权限开工单，请联系XXX获取帮助"
 ```
 
+#### 开启周期性轮询工单推送功能
+
+访问Amazon EventBridge服务主页，在页面左侧，在Buses段落中找到找到Rules编辑页面。找到机器人对应的Rule，开启该Rule。
+
+
+（TODO：通过CDK更新开启/关闭Rule功能）
+
+
 ## 成本预估
 ---
 

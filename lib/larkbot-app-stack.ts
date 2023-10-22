@@ -40,12 +40,13 @@ export class LarkbotAppStack extends cdk.Stack {
       default: 'zh'
     })
 
-    const enableRefresh = new cdk.CfnParameter(this, 'EnableRefresh', {
-      type:'String',
-      description: 'Enable Refresh rule, disable by default',
-      noEcho: false,
-      default:'false'
-    })
+    // const enableRefresh = new cdk.CfnParameter(this, 'EnableRefresh', {
+    //   type:'String',
+    //   description: 'Enable Refresh rule, disable by default',
+    //   noEcho: false,
+    //   allowedValues: ['true', 'false'],
+    //   default:'false'
+    // })
 
     const refreshInterval = new cdk.CfnParameter(this, 'RefreshInterval', {
       type: 'Number',
@@ -228,12 +229,12 @@ export class LarkbotAppStack extends cdk.Stack {
     // Define Eventbridge rule
     ///////////////////////////////////////////////////////////////////////
 
-    console.log(refreshInterval.valueAsString)
 
     const refreshEventRule = new events.Rule(this, 'refreshCaseRule', {
       schedule: events.Schedule.rate(cdk.Duration.minutes(refreshInterval.valueAsNumber)),
       description: `Refresh case update every ${refreshInterval.valueAsString} minutes`,
-      enabled: Boolean(enableRefresh.value)
+      // enabled: Boolean(enableRefresh.valueAsString === 'true')
+      enabled: false
     })
 
     refreshEventRule.addTarget(new targets.LambdaFunction(msgEventAlias, {
