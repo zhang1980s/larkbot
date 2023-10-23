@@ -42,8 +42,9 @@
 
 [成本预估](#成本预估)
 
-
 [待开发功能](#TODO列表)
+
+[开发步骤](#开发步骤)
 
 
 
@@ -188,7 +189,7 @@ $ cdk bootstrap aws://<accountID>/<region> --profile <profile>
 例如，下面命令在123456789012账号的ap-northeast-1地区，使用global profile初始化cdk环境。
 
 ```
-$ cdk bootstrap aws//123456789012/ap-northeast-1 --profile global
+$ cdk bootstrap aws://123456789012/ap-northeast-1 --profile global
 
   cdk bootstrap aws://123456789012/ap-northeast-1 --profile global
  ⏳  Bootstrapping environment aws://123456789012/ap-northeast-1...
@@ -471,13 +472,28 @@ LarkbotAppStack.msgEventRoleArn = arn:aws:iam::123456789012:role/larkbot-larkbot
 }
 ```
 
-点击下一步进入权限选择页面，选择"AWSSupportAooFullAccess"
+点击下一步进入权限选择页面，选择"AWSSupportAllFullAccess"
 
 ![选择权限](picture/support-role-2.jpeg)
 
 点击下一步输入角色名 "arn:aws:iam::<AccountID>:role/FeishuSupportCaseApiAll<自定义后缀>"。
 
-如需使用自定义的角色名，需要在lambda 的larkbotmsgeventServiceRoleDefaultPolicy中允许lambda assume到自定义role。
+CDK默认设置lambda支持assume到任何账号中角色名称以FeishuSupportCaseApiAll字符串开头的角色。
+
+```
+    // Attach the policy document that allow to assume the support role in others accounts to the lambda function's role
+        msgEventAlias.addToRolePolicy(new iam.PolicyStatement(
+          {
+            sid: 'AllowToAssumeToRoleWithSupportAPIAccess',
+            effect: iam.Effect.ALLOW,
+            actions: ['sts:AssumeRole'],
+            resources: ['arn:aws:iam::*:role/FeishuSupportCaseApiAll*']
+          }
+        ))
+```
+
+
+如需使用其他自定义的角色名，需要在lambda的larkbotmsgeventServiceRoleDefaultPolicy中允许lambda assume到自定义role。
 
 例如：
 
@@ -778,3 +794,16 @@ CASE_LANGUAGE=en
 
 
 [回到目录](#目录)
+
+
+## 开发步骤
+---
+机器人主要由两部分代码组成：CDK部署代码和lambda代码。
+
+#### 修改lambda代码
+lambda代码修改完毕后，进入lambda/msg-event目录，执行make命令。脚本会自动生成新的lambda 二进制文件。
+
+然后执行cdk-deploy-to.sh 脚本，使用上一次部署相同的参数，cdk会自动识别lambda二进制文件发生改变并自动更新到AWS环境中。
+
+#### 修改cdk代码
+cdk代码修改完毕后，直接执行cdk-deploy-to.sh脚本，使用上一次部署相同的参数，cdk会自动识别基础设施配置变更并自动更新到AWS环境中。
