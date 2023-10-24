@@ -39,6 +39,14 @@ func Serve(_ context.Context, e *event.Msg) (event *response.MsgResponse, err er
 		return resp, err
 	}
 
+	logrus.Infof("USER ID: %v", e.Event.Sender.SenderIDs.UserID)
+	_, ok := config.Conf.UserWhiteListMap[e.Event.Sender.SenderIDs.UserID]
+	if !ok {
+		fromChannelID := e.Event.Message.ChatID
+		dao.SendMsgToChannel(fromChannelID, config.Conf.NoPermissionMSG)
+		return resp, nil
+	}
+
 	if e.Action != nil && e.Event.Message.MsgType == "" {
 		e.Event.Message.MsgType = "card"
 	}
@@ -72,17 +80,12 @@ func Serve(_ context.Context, e *event.Msg) (event *response.MsgResponse, err er
 	if caze != nil && caze.Status == dao.STATUS_NEW {
 
 		// if user in list, create case and channel, else send no permission
-		logrus.Infof("USER ID: %v", e.Event.Sender.SenderIDs.UserID)
-		_, ok := config.Conf.UserWhiteListMap[e.Event.Sender.SenderIDs.UserID]
-		if !ok {
-			fromChannelID := e.Event.Message.ChatID
-			dao.SendMsgToChannel(fromChannelID, config.Conf.NoPermissionMSG)
-		} else {
-			err = createChatOrNewCase(caze)
-			if err != nil {
-				logrus.Errorf("process chat or create case failed case %+v, \n %v", caze, err)
-			}
+
+		err = createChatOrNewCase(caze)
+		if err != nil {
+			logrus.Errorf("process chat or create case failed case %+v, \n %v", caze, err)
 		}
+
 	}
 	resp.Elements = caze.CardMsg.Card.Elements
 	return resp, nil
