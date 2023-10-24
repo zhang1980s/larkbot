@@ -12,6 +12,7 @@ import (
 
 	lark "github.com/larksuite/oapi-sdk-go/v3"
 	larkcore "github.com/larksuite/oapi-sdk-go/v3/core"
+	larkcontact "github.com/larksuite/oapi-sdk-go/v3/service/contact/v3"
 	larkim "github.com/larksuite/oapi-sdk-go/v3/service/im/v1"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
@@ -268,4 +269,55 @@ func CreateChatTab(chatID string, url string) (err error) {
 		return err
 	}
 	return nil
+}
+
+func GetUserIdbyEmailOrPhone(emailList []string, phoneList []string) (validUser map[string]string, badUserList []string, err error) {
+	client := getClient()
+
+	req := larkcontact.NewBatchGetIdUserReqBuilder().
+		UserIdType("user_id").
+		Body(larkcontact.NewBatchGetIdUserReqBodyBuilder().
+			Emails(emailList).
+			Mobiles(phoneList).
+			Build()).
+		Build()
+
+	t, err := getToken()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	resp, err := client.Contact.User.BatchGetId(context.Background(), req, larkcore.WithTenantAccessToken(t.TAToken))
+
+	if err != nil {
+		logrus.Errorf("get userid by email failed, err %v", err)
+		return nil, nil, err
+	}
+	if !resp.Success() {
+		logrus.Errorf("get userid by email failed, response code %v", resp.Code)
+		return nil, nil, errors.New(resp.CodeError.String())
+	}
+
+	logrus.Infof("response Body: %s", resp.RawBody)
+	validUser = make(map[string]string)
+	for _, userInfo := range resp.Data.UserList {
+		if userInfo.UserId != nil {
+			fmt.Println(validUser)
+
+			if userInfo.Mobile != nil {
+				validUser[*userInfo.UserId] = *userInfo.Mobile
+			} else {
+				validUser[*userInfo.UserId] = *userInfo.Email
+			}
+		} else {
+			if userInfo.Mobile != nil {
+				badUserList = append(badUserList, *userInfo.Mobile)
+			} else {
+				badUserList = append(badUserList, *userInfo.Email)
+			}
+
+		}
+	}
+
+	return validUser, badUserList, nil
 }

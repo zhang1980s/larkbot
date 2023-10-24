@@ -18,6 +18,7 @@ func InitServices() {
 		"服务":       handlers.GetServiceServ(),
 		"帮助":       handlers.Gethelper(),
 		"历史":       handlers.GetSearcher(),
+		"添加白名单":    handlers.GetWhistlist(),
 		defaultKey: handlers.GetCommentsServServ(),
 	}
 }
