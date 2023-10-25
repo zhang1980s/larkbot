@@ -46,5 +46,5 @@ func (r textProcessor) Process(e *event.Msg) (err error) {
 		}
 
 	}
-	return err
+	return nil
 }

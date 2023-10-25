@@ -9,7 +9,6 @@ import (
 	"msg-event/model/response"
 	"msg-event/services/api"
 	"msg-event/services/processors"
-	"os"
 	"strings"
 
 	"github.com/sirupsen/logrus"
@@ -42,7 +41,7 @@ func Serve(_ context.Context, e *event.Msg) (event *response.MsgResponse, err er
 
 	logrus.Infof("USER ID: %v", e.Event.Sender.SenderIDs.UserID)
 	_, ok := config.Conf.UserWhiteListMap[e.Event.Sender.SenderIDs.UserID]
-	if os.Getenv("ENABLE_WL") == "true" && !ok {
+	if !ok {
 		fromChannelID := e.Event.Message.ChatID
 		dao.SendMsgToChannel(fromChannelID, config.Conf.NoPermissionMSG)
 		return resp, nil
@@ -62,11 +61,9 @@ func Serve(_ context.Context, e *event.Msg) (event *response.MsgResponse, err er
 			err = v.Process(e)
 			if err != nil {
 				logrus.Errorf("failed to process %v", err)
-				return resp, err
 			}
 		} else {
 			logrus.Errorf("unknown type %s", e.Event.Message.MsgType)
-			return resp, err
 		}
 	}
 
