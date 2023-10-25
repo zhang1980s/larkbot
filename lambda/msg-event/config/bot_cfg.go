@@ -25,6 +25,7 @@ type Config struct {
 	Ack              string              `dynamodbav:"ack"`
 	NoPermissionMSG  string              `dynamodbav:"no_permission_msg"`
 	UserWhiteListMap map[string]string   `dynamodbav:"user_whitelist"`
+	RoleMap          map[string]string   `dynamodbav:"role"`
 }
 
 type Account struct {
