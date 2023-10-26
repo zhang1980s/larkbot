@@ -144,6 +144,7 @@ export class LarkbotAppStack extends cdk.Stack {
         CFG_TABLE: botConfigTable.tableName,
         CFG_KEY: 'LarkBotProfile-0',
         CASE_LANGUAGE: caseLanguage.valueAsString,
+        ENABLE_WL: 'true',
        }
     } );
 
