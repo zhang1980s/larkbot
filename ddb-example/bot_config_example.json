@@ -165,35 +165,35 @@
          "options": [
           {
            "text": {
-            "content": "low - 24小时响应",
+            "content": "一般性指导",
             "tag": "plain_text"
            },
            "value": "low"
           },
           {
            "text": {
-            "content": "normal - 12小时响应",
+            "content": "系统受损",
             "tag": "plain_text"
            },
            "value": "normal"
           },
           {
            "text": {
-            "content": "high - 4小时响应",
+            "content": "生产系统受损",
             "tag": "plain_text"
            },
            "value": "high"
           },
           {
            "text": {
-            "content": "urgent - 1小时响应",
+            "content": "生产系统停机",
             "tag": "plain_text"
            },
            "value": "urgent"
           },
           {
            "text": {
-            "content": "critical - 15分钟响应",
+            "content": "业务/任务关键型系统停机",
             "tag": "plain_text"
            },
            "value": "critical"

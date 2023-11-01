@@ -39,8 +39,10 @@ func Serve(_ context.Context, e *event.Msg) (event *response.MsgResponse, err er
 		return resp, err
 	}
 
+
 	if e.Action != nil && e.Event.Message.MsgType == "" {
 		e.Event.Message.MsgType = "card"
+    
 	}
 
 	if e.Event.Message.MsgType != "" {
