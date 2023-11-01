@@ -54,6 +54,14 @@ export class LarkbotAppStack extends cdk.Stack {
       allowedValues: ["true","false"],
       default: 'false'
     })
+
+    const supportRegion = new cdk.CfnParameter(this, 'SupportRegion', {
+      type: 'String',
+      description: 'The default support region',
+      noEcho: false,
+      allowedValues: ['en','cn'],
+      default: 'en'
+    })
     // const enableRefresh = new cdk.CfnParameter(this, 'EnableRefresh', {
     //   type:'String',
     //   description: 'Enable Refresh rule, disable by default',
@@ -160,6 +168,7 @@ export class LarkbotAppStack extends cdk.Stack {
         CFG_KEY: configKey.valueAsString,
         CASE_LANGUAGE: caseLanguage.valueAsString,
         ENABLE_USER_WHITELIST: userWhitelist.valueAsString,
+        SUPPORT_REGION: supportRegion.valueAsString,
        }
     } );
 
