@@ -577,6 +577,14 @@ CDK默认设置lambda支持assume到任何账号中角色名称以FeishuSupportC
 
 ###### 设置机器人用户白名单
 
+机器人支持使用白名单功能控制可以使用机器人的飞书用户范围。部署后白名单功能默认关闭若要开启白名单功能，使用下面命令更新lambda的环境变量配置。
+
+```
+./cdk-deploy-to.sh <accountID> <region> --context stackName=<stackname> --profile <profile> --parameters UserWhitelist='true' 
+```
+
+
+
 添加允许使用机器人的飞书userID到白名单。
 
 ```
@@ -730,8 +738,14 @@ CDK默认设置lambda支持assume到任何账号中角色名称以FeishuSupportC
 
 访问Amazon EventBridge服务主页，在页面左侧，在Buses段落中找到找到Rules编辑页面。找到机器人对应的Rule，开启该Rule。
 
-轮询周期在Eventbridge rule相同位置调整。也可以通过cdk部署命令进行调整。默认轮询周期为10分钟，可以使用下面命令调整为其他的数值，例如：
+轮询周期在Eventbridge rule相同位置调整。也可以通过cdk部署命令进行调整。默认轮询周期为10分钟，可以使用下面命令调整为其他的数值。
 
+例如：
+```
+RefreshInterval=20
+```
+
+设置方式：
 ```
 ./cdk-deploy-to.sh <accountID> <region> --context stackName=<stackname> --parameters RefreshInterval=20 --profile <profile>
 ```
@@ -751,6 +765,12 @@ CDK默认设置lambda支持assume到任何账号中角色名称以FeishuSupportC
 SUPPORT_REGION=cn
 ```
 
+设置方式：
+
+```
+./cdk-deploy-to.sh <accountID> <region> --context stackName=<stackname> --parameters SupportRegion='cn' --profile <profile>
+```
+
 
 如果这个值被设置为非‘cn’，则机器人默认使用海外Support API endpoint。
 
@@ -768,10 +788,16 @@ AWS Support API支持提交工单时选择语言。当前支持的语言是：
 "zh", "ja", "ko", "en"
 ```
 
-机器人默认使用zh。如需获取其他语言支持工单，可以调整lambda环境变量中的CASE_LANGUAGE参数。 例如下面示例指定机器人使用英文支持队列。
+机器人默认使用zh。如需获取其他语言支持工单，可以调整lambda环境变量中的CASE_LANGUAGE参数。 
+
+例如下面示例指定机器人使用英文支持队列。
 
 ```
 CASE_LANGUAGE=en
+```
+
+```
+./cdk-deploy-to.sh <accountID> <region> --context stackName=<stackname> --parameters CaseLanguage='en' --profile <profile>
 ```
 
 [回到目录](#目录)
