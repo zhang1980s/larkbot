@@ -23,7 +23,7 @@ func AddWhitelist(whitelist map[string]string) (err error) {
 
 	for key, value := range whitelist {
 		attrKey := "#K_" + key
-		attrValue := ":V_" + value
+		attrValue := ":V_" + key
 
 		updateExpParts = append(updateExpParts, fmt.Sprintf("#UserWhiteListMap.%s = %s", attrKey, attrValue))
 		attrNames[attrKey] = key
@@ -106,7 +106,7 @@ func SetAdmin(adminList map[string]string) (err error) {
 	for key, value := range adminList {
 
 		attrKey := "#K_" + key
-		attrValue := ":V_" + value
+		attrValue := ":V_" + key
 
 		if _, ok := config.Conf.UserWhiteListMap[key]; !ok {
 			attrNames["#UserWhiteListMap"] = "user_whitelist"
