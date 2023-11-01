@@ -42,7 +42,8 @@ func Serve(_ context.Context, e *event.Msg) (event *response.MsgResponse, err er
 
 	logrus.Infof("USER ID: %v", e.Event.Sender.SenderIDs.UserID)
 	_, ok := config.Conf.UserWhiteListMap[e.Event.Sender.SenderIDs.UserID]
-	if os.Getenv("ENABLE_WL") == "true" && !ok {
+
+	if os.Getenv("ENABLE_USER_WHITELIST") == "true" && !ok {
 		fromChannelID := e.Event.Message.ChatID
 		dao.SendMsgToChannel(fromChannelID, config.Conf.NoPermissionMSG)
 		return resp, nil

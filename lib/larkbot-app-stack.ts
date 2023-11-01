@@ -40,6 +40,19 @@ export class LarkbotAppStack extends cdk.Stack {
       default: 'zh'
     })
 
+    const configKey = new cdk.CfnParameter(this, 'ConfigKey', {
+      type: 'String',
+      description: 'The default config profile',
+      noEcho: false,
+      default: 'LarkBotProfile-0'
+    })
+
+    const userWhitelist = new cdk.CfnParameter(this, 'UserWhitelist',{
+      type: 'String',
+      description: 'Enable user white list function',
+      noEcho: false,
+      default: 'false'
+    })
     // const enableRefresh = new cdk.CfnParameter(this, 'EnableRefresh', {
     //   type:'String',
     //   description: 'Enable Refresh rule, disable by default',
@@ -54,6 +67,7 @@ export class LarkbotAppStack extends cdk.Stack {
       noEcho: false,
       default: 10
     })
+
     
 
     ///////////////////////////////////////////////////////////////////////
@@ -142,9 +156,9 @@ export class LarkbotAppStack extends cdk.Stack {
         AUDIT_TABLE: auditTable.tableName,
         CASES_TABLE: botCasesTable.tableName,
         CFG_TABLE: botConfigTable.tableName,
-        CFG_KEY: 'LarkBotProfile-0',
+        CFG_KEY: configKey.valueAsString,
         CASE_LANGUAGE: caseLanguage.valueAsString,
-        ENABLE_WL: 'false',
+        ENABLE_USER_WHITELIST: userWhitelist.valueAsString,
        }
     } );
 
