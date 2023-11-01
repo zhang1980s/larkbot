@@ -51,6 +51,7 @@ export class LarkbotAppStack extends cdk.Stack {
       type: 'String',
       description: 'Enable user white list function',
       noEcho: false,
+      allowedValues: ["true","false"],
       default: 'false'
     })
     // const enableRefresh = new cdk.CfnParameter(this, 'EnableRefresh', {
