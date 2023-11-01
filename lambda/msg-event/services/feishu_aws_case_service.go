@@ -62,9 +62,11 @@ func Serve(_ context.Context, e *event.Msg) (event *response.MsgResponse, err er
 			err = v.Process(e)
 			if err != nil {
 				logrus.Errorf("failed to process %v", err)
+				return resp, err
 			}
 		} else {
 			logrus.Errorf("unknown type %s", e.Event.Message.MsgType)
+			return resp, err
 		}
 	}
 
