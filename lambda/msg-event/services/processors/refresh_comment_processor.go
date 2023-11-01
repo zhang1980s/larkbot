@@ -12,6 +12,10 @@ import (
 type refreshCommentProcessor struct {
 }
 
+func (r refreshCommentProcessor) ShouldProcess(e *event.Msg) bool {
+	return true
+}
+
 func GetRefreshCommentProcessor() api.Processor {
 	return &refreshCommentProcessor{}
 }

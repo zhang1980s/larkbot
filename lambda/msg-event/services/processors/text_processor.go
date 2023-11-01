@@ -2,10 +2,12 @@ package processors
 
 import (
 	"encoding/json"
+	"msg-event/config"
 	"msg-event/dao"
 	"msg-event/model"
 	"msg-event/model/event"
 	"msg-event/services/api"
+	"os"
 	"strings"
 
 	"github.com/sirupsen/logrus"
@@ -18,8 +20,25 @@ func GetTextProcessor() api.Processor {
 	return &textProcessor{}
 }
 
+func (r textProcessor) ShouldProcess(e *event.Msg) bool {
+	//perimission judgetment
+	userId := e.Event.Sender.SenderIDs.UserID
+	_, ok := config.Conf.UserWhiteListMap[userId]
+
+	if os.Getenv("ENABLE_USER_WHITELIST") == "true" && !ok {
+		fromChannelID := e.Event.Message.ChatID
+		dao.SendMsgToChannel(fromChannelID, config.Conf.NoPermissionMSG)
+		return false
+	}
+	return true
+}
+
 func (r textProcessor) Process(e *event.Msg) (err error) {
 	if e.Event.Message.MsgType == "text" {
+		if ok := r.ShouldProcess(e); !ok {
+			return nil
+		}
+
 		c := &model.Content{}
 		if err = json.Unmarshal([]byte(e.Event.Message.Content), c); err != nil {
 			return err

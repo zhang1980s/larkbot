@@ -15,6 +15,10 @@ import (
 type imageProcessor struct {
 }
 
+func (r imageProcessor) ShouldProcess(e *event.Msg) bool {
+	return true
+}
+
 func GetImageProcessor() api.Processor {
 	return &imageProcessor{}
 }
