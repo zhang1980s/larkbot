@@ -40,8 +40,14 @@ func Serve(_ context.Context, e *event.Msg) (event *response.MsgResponse, err er
 		return resp, err
 	}
 
-	logrus.Infof("USER ID: %v", e.Event.Sender.SenderIDs.UserID)
-	_, ok := config.Conf.UserWhiteListMap[e.Event.Sender.SenderIDs.UserID]
+	userId := e.Event.Sender.SenderIDs.UserID
+
+	if e.Action != nil && e.Event.Message.MsgType == "" {
+		e.Event.Message.MsgType = "card"
+		userId = e.UserID
+	}
+
+	_, ok := config.Conf.UserWhiteListMap[userId]
 
 	if os.Getenv("ENABLE_USER_WHITELIST") == "true" && !ok {
 		fromChannelID := e.Event.Message.ChatID
@@ -49,9 +55,6 @@ func Serve(_ context.Context, e *event.Msg) (event *response.MsgResponse, err er
 		return resp, nil
 	}
 
-	if e.Action != nil && e.Event.Message.MsgType == "" {
-		e.Event.Message.MsgType = "card"
-	}
 	if e.Event.Message.MsgType != "" {
 		if !Processable(e) {
 			logrus.Infof("Duplicate message with same eventID")
