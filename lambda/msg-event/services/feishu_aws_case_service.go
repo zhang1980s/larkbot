@@ -9,7 +9,6 @@ import (
 	"msg-event/model/response"
 	"msg-event/services/api"
 	"msg-event/services/processors"
-	"os"
 	"strings"
 
 	"github.com/sirupsen/logrus"
@@ -40,19 +39,8 @@ func Serve(_ context.Context, e *event.Msg) (event *response.MsgResponse, err er
 		return resp, err
 	}
 
-	userId := e.Event.Sender.SenderIDs.UserID
-
 	if e.Action != nil && e.Event.Message.MsgType == "" {
 		e.Event.Message.MsgType = "card"
-		userId = e.UserID
-	}
-
-	_, ok := config.Conf.UserWhiteListMap[userId]
-
-	if os.Getenv("ENABLE_USER_WHITELIST") == "true" && !ok {
-		fromChannelID := e.Event.Message.ChatID
-		dao.SendMsgToChannel(fromChannelID, config.Conf.NoPermissionMSG)
-		return resp, nil
 	}
 
 	if e.Event.Message.MsgType != "" {

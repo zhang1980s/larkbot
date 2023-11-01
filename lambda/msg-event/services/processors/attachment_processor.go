@@ -14,6 +14,10 @@ import (
 type attaProcessor struct {
 }
 
+func (r attaProcessor) ShouldProcess(e *event.Msg) bool {
+	return true
+}
+
 func GetAttaProcessor() api.Processor {
 	return &attaProcessor{}
 }
