@@ -48,21 +48,25 @@ func AddWhitelist(whitelist map[string]string) (err error) {
 	return err
 }
 
-func DelWhiteList(whiteList []string) (err error) {
+func DelWhiteList(whiteList map[string]string) (err error) {
 	client := GetDBClient()
 	primaryKeyValue := os.Getenv("CFG_KEY")
 
 	var updateExpParts []string
 	attrNames := map[string]string{"#UserWhiteListMap": "user_whitelist"}
 
-	for _, key := range whiteList {
+	for key, _ := range whiteList {
 		attrKey := "#K_" + key
 		updateExpParts = append(updateExpParts, fmt.Sprintf("#UserWhiteListMap.%s", attrKey))
 		attrNames[attrKey] = key
+		if _, ok := config.Conf.RoleMap[key]; ok {
+			attrNames["#RoleMap"] = "role"
+			updateExpParts = append(updateExpParts, fmt.Sprintf("#RoleMap.%s", attrKey))
+		}
 	}
 
 	input := &dynamodb.UpdateItemInput{
-		TableName:                aws.String("LarkbotAppStack-botconfigCFB80AE2-VPP11H16RTMN"),
+		TableName:                aws.String(cfgTableName),
 		Key:                      map[string]types.AttributeValue{"key": &types.AttributeValueMemberS{Value: primaryKeyValue}}, // Replace with your primary key attribute name and value
 		UpdateExpression:         aws.String("REMOVE " + strings.Join(updateExpParts, ", ")),
 		ExpressionAttributeNames: attrNames,
