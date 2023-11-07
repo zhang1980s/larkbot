@@ -5,6 +5,7 @@ import (
 	"msg-event/config"
 	"os"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/avast/retry-go"
@@ -338,11 +339,14 @@ func FormatTime(t time.Time) string {
 }
 
 func FormatComments(comments []types.Communication) string {
-	s := ""
+	cmt := ""
 	for _, c := range comments {
-		s += fmt.Sprintf("来自%s的最新回复(%s):\\n %s\\n", *c.SubmittedBy, *c.TimeCreated, *c.Body)
+		cmt += fmt.Sprintf("来自%s的最新回复(%s):\\n %s\\n", *c.SubmittedBy, *c.TimeCreated, *c.Body)
 	}
 
+	r := strings.NewReplacer("\n", "\\n", "\t", "\\t", "\r", "\\r")
+
+	s := r.Replace(cmt)
 	return s
 }
 
