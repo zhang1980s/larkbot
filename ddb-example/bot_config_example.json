@@ -251,21 +251,6 @@
      "msg_type": "interactive",
      "update_multi": true
     },
-    "err_card_template": {
-     "card": {
-      "config": {
-       "wide_screen_mode": true
-      },
-      "elements": [
-       {
-        "content": "test",
-        "tag": "markdown"
-       }
-      ]
-     },
-     "msg_type": "interactive",
-     "update_multi": true
-    },
     "no_permission_msg": "你没有权限开工单，请联系XXX获取帮助",
     "service_map": {
      "0": [
@@ -341,6 +326,6 @@
      "c654321": "李同学"
     },
     "role": {
-     "b123456": ""
+     "b123456": "管理员"
     }
    }
