@@ -7,6 +7,7 @@ import * as iam from 'aws-cdk-lib/aws-iam'
 import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager'
 import * as events from 'aws-cdk-lib/aws-events'
 import * as targets from 'aws-cdk-lib/aws-events-targets'
+import * as sqs from 'aws-cdk-lib/aws-sqs'
 
 
 export class LarkbotAppStack extends cdk.Stack {
@@ -146,7 +147,13 @@ export class LarkbotAppStack extends cdk.Stack {
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST
     })
 
+    ///////////////////////////////////////////////////////////////////////
+    // Define SQS for Q content
+    ///////////////////////////////////////////////////////////////////////
 
+    const qContentQueue = new sqs.Queue(this, 'QsqsQ', {
+      queueName: 'qContentQueue'
+    })
 
 
     ///////////////////////////////////////////////////////////////////////
@@ -169,6 +176,7 @@ export class LarkbotAppStack extends cdk.Stack {
         CASE_LANGUAGE: caseLanguage.valueAsString,
         ENABLE_USER_WHITELIST: userWhitelist.valueAsString,
         SUPPORT_REGION: supportRegion.valueAsString,
+        SQS_URL: qContentQueue.queueUrl
        }
     } );
 
@@ -274,6 +282,7 @@ export class LarkbotAppStack extends cdk.Stack {
         }
       )
     }))
+
 
 
     ///////////////////////////////////////////////////////////////////////
