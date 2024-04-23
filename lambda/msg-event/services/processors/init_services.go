@@ -22,6 +22,7 @@ func InitServices() {
 		"删除白名单":    handlers.GetWhitelistDel(),
 		"查看白名单":    handlers.GetWhitelistCat(),
 		"设置管理员":    handlers.GetAdminWhitelist(),
+		"Q":        handlers.GetQService(),
 		defaultKey: handlers.GetCommentsServServ(),
 	}
 }
