@@ -17,11 +17,11 @@ func GetQService() api.Server {
 func (s *qServ) Handle(e *event.Msg, content string) (c *dao.Case, err error) {
 
 	dao.SendContentToSQS(context.Background(), content, e.Event.Message.MsgID)
-	fromChannelID := e.Event.Message.ChatID
-	customerID := e.Event.Sender.SenderIDs.UserID
-	msgID := e.Event.Message.MsgID
+	// fromChannelID := e.Event.Message.ChatID
+	// customerID := e.Event.Sender.SenderIDs.UserID
+	// msgID := e.Event.Message.MsgID
 
-	dao.SendMsg(fromChannelID, customerID, content+" "+msgID)
+	// dao.SendMsg(fromChannelID, customerID, content+" "+msgID)
 	return nil, nil
 }
 

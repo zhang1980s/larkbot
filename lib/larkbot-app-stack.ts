@@ -1,6 +1,7 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as lambdaEventSources from 'aws-cdk-lib/aws-lambda-event-sources'
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb'
 import * as apigateway from 'aws-cdk-lib/aws-apigateway'
 import * as iam from 'aws-cdk-lib/aws-iam'
@@ -8,6 +9,7 @@ import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager'
 import * as events from 'aws-cdk-lib/aws-events'
 import * as targets from 'aws-cdk-lib/aws-events-targets'
 import * as sqs from 'aws-cdk-lib/aws-sqs'
+import * as s3 from 'aws-cdk-lib/aws-s3'
 
 
 export class LarkbotAppStack extends cdk.Stack {
@@ -77,7 +79,6 @@ export class LarkbotAppStack extends cdk.Stack {
       noEcho: false,
       default: 10
     })
-
     
 
     ///////////////////////////////////////////////////////////////////////
@@ -107,11 +108,14 @@ export class LarkbotAppStack extends cdk.Stack {
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST
     })
 
+
+    
     const botCasesTable = new dynamodb.Table(this, 'bot_cases', {
       partitionKey: {name: 'pk', type: dynamodb.AttributeType.STRING },
       sortKey: {name: 'sk', type: dynamodb.AttributeType.STRING},
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+
     })
 
 
@@ -151,8 +155,10 @@ export class LarkbotAppStack extends cdk.Stack {
     // Define SQS for Q content
     ///////////////////////////////////////////////////////////////////////
 
-    const qContentQueue = new sqs.Queue(this, 'QsqsQ', {
-      queueName: 'qContentQueue'
+    const qContentQ = new sqs.Queue(this, 'qContentQ', {
+      queueName: 'qContentQ.fifo',
+      fifo: true,
+      contentBasedDeduplication:true
     })
 
 
@@ -176,7 +182,7 @@ export class LarkbotAppStack extends cdk.Stack {
         CASE_LANGUAGE: caseLanguage.valueAsString,
         ENABLE_USER_WHITELIST: userWhitelist.valueAsString,
         SUPPORT_REGION: supportRegion.valueAsString,
-        SQS_URL: qContentQueue.queueUrl
+        SQS_URL: qContentQ.queueUrl
        }
     } );
 
@@ -188,7 +194,7 @@ export class LarkbotAppStack extends cdk.Stack {
       version: msgEventVersion,
     });
 
-    // Attch the policy document that allow to access Secret ARN of the AppID and AppSecret
+    // Grant the RO access of AppID and AppSecret to msgEvent function
 
     AppIDSecret.grantRead(msgEventAlias)
     AppSecretSecret.grantRead(msgEventAlias)
@@ -204,12 +210,117 @@ export class LarkbotAppStack extends cdk.Stack {
           }
         ))
 
-    // Grant RW access of audit table to larkbot function 
+    // Grant RW access of ddb tables to msgEvent function 
 
     auditTable.grantReadWriteData(msgEventAlias)
     botCasesTable.grantReadWriteData(msgEventAlias)
     botConfigTable.grantReadWriteData(msgEventAlias)
 
+    // Grant send SQS message permission to msgEvent function
+
+    qContentQ.grantSendMessages(msgEventAlias)
+
+    ///////////////////////////////////////////////////////////////////////
+    // Define the log Bucket 
+    ///////////////////////////////////////////////////////////////////////
+
+
+    // const stackArnSuffix = cdk.Stack.of(this).stackId
+    const qLogBucket = new s3.Bucket(this, 'qLogBucket', {
+      // bucketName: qLogBucketName.valueAsString + "-" + stackArnSuffix.toString,
+      versioned: false,
+      removalPolicy: cdk.RemovalPolicy.RETAIN
+    })
+
+
+    ///////////////////////////////////////////////////////////////////////
+    // Define qEvent lambda functions with alias and version
+    ///////////////////////////////////////////////////////////////////////
+
+    // Define qEvent handler
+    const qEventFunction = new lambda.Function(this,'q-event', {
+      runtime: lambda.Runtime.PYTHON_3_11,
+      architecture: lambda.Architecture.ARM_64,
+      handler: 'lambda_function.lambda_handler',
+      code: lambda.Code.fromAsset('lambda/q-event'),
+      timeout: cdk.Duration.seconds(20),
+      environment: {
+        CFG_TABLE: botConfigTable.tableName,
+        CFG_KEY: configKey.valueAsString,
+        LOG_BUCKET: qLogBucket.bucketName
+       }
+    } );
+
+    const qEventVersion = qEventFunction.currentVersion;
+
+    const qEventAlias = new lambda.Alias(this, 'q-event-prod', {
+      aliasName: 'Prod',
+      version: qEventVersion,
+    });
+
+    // Adding qContentQ as event source
+    qEventAlias.addEventSource(new lambdaEventSources.SqsEventSource(qContentQ))
+
+    // Grant consume message permission to qEvent Function
+    qContentQ.grantConsumeMessages(qEventAlias)
+
+    // Grant RO access of config table to qEvent function 
+    botConfigTable.grantReadData(qEventAlias)
+
+    // Grant RO access of AppID and AppSecret to qEventFunction
+    AppIDSecret.grantRead(qEventAlias)
+    AppSecretSecret.grantRead(qEventAlias)
+    
+    // Grant RW access to qLogBucket
+    qLogBucket.grantReadWrite(qEventAlias)
+
+
+    // Create an IAM policy for full AWS Translate access
+    const translateAccessPolicy = new iam.PolicyStatement(
+      {
+        actions: [
+          'translate:*',
+          'comprehend:DetectDominantLanguage',
+        ],
+        resources: ['*'],
+      }
+    )
+
+    // Attach the translate policy to the qEvent Function
+    qEventAlias.role?.attachInlinePolicy(
+      new iam.Policy(this, 'TranslateAccessPolicy', {
+        statements: [translateAccessPolicy]
+      })
+    )
+    // Create an IAM policy for full AmazonQ access
+    const amazonQAccessPolicy = new iam.PolicyStatement(
+      {
+        actions: ['q:*'],
+        resources: ['*'],
+      }
+    )
+
+    // Attach the amazonQ policy to the qEvent Function
+    qEventAlias.role?.attachInlinePolicy(
+      new iam.Policy(this, 'AmazonQAccessPolicy', {
+        statements: [amazonQAccessPolicy]
+      })
+    )
+
+    // Create an IAM policy for Bedrock access
+    const amazonBedrockPolicy = new iam.PolicyStatement(
+      {
+        actions: ['bedrock:InvokeModel'],
+        resources: ['*'],
+      }
+    )
+
+    // Attach the Bedrock policy to the qEvent Function
+    qEventAlias.role?.attachInlinePolicy(
+      new iam.Policy(this, 'AmazonBedrockPolicy', {
+        statements: [amazonBedrockPolicy]
+      })
+    )
 
     ///////////////////////////////////////////////////////////////////////
     // Define the Rest APIs for message and content card 
