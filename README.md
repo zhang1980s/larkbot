@@ -53,7 +53,7 @@
 
 ## 架构图
 
-![架构示意图](picture/larkbot_architecture_3.0.png)
+![架构示意图](picture/architecture_Q_feishu.png)
 
 
 ## 操作手册
@@ -136,6 +136,12 @@
 #### 工单历史查询操作
 
 和机器人交互时，使用历史关键字+空格+数字n可以显示过去n天的工单信息。
+
+#### 和AmazonQ机器人获取AWS知识和最佳实践
+
+和机器人对话时，使用Q关键字唤起和AmazonQ机器人对话。
+
+![Q关键字](picture/q-screenshot.png)
 
 
 [回到目录](#目录)
