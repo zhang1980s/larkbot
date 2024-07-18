@@ -141,7 +141,7 @@
 
 和机器人对话时，使用Q关键字唤起和AmazonQ机器人对话。
 
-![Q关键字](picture/q-screenshot.png)
+![Q关键字](picture/q-demo.png)
 
 
 [回到目录](#目录)
